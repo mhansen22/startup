@@ -1,6 +1,6 @@
-#GitHub Notes - 1/12/24:
+# GitHub Notes - 1/12/24:
 
-##Creating and Cloning a Repository:
+## Creating and Cloning a Repository:
 
 **Create a Repository on GitHub:**
   - Name: 'startup'
@@ -10,7 +10,7 @@
   - git clone https://github.com/webprogramming260/startup-example.git
   - cd startup
 
-##Making Changes to a File:
+## Making Changes to a File:
 
 If the file is called test.md:
 - printf "\nChange from my development environment!\n" >> test.md
@@ -41,6 +41,6 @@ Fast-forward
  test.md | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-###Link to READ.me file:
+### Link to READ.me file:
  https://github.com/mhansen22/startup/blob/main/README.md
- 
+
