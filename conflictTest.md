@@ -1,1 +1,1 @@
-conflict test file
+simplifying this file.
