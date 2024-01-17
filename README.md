@@ -1,11 +1,15 @@
+## Specification Deliverable
+
 ### Elevator pitch
-Put my elevator pitch here!
+Put my elevator pitch here! One paragraph in length. Keep it interesting.
 
 ### Design
 
 ### Key features
 
 ### Technologies
+
+# DO NOT EDIT YET --
 
 ### HTMl deliverable
 
