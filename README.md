@@ -7,22 +7,38 @@ Are you tired of spending more time debating with friends about which movie to w
 
 ### Key features
 
-- Login page
-- 
+- Login page: keeps application and voting secure.
+- Admin answers four questions (What genre? What time period? What age rating? What length?) to narrow down movie options.
+- Users can select one of the five movies listed to vote.
+- The five movies listed will be the top five rated for the specifications.
+- Results are shared on end result page.
+- Results are stored.
 
 ### Technologies
 This is how I will implement the technologies required:
 
-- HTML - I will structure the login and voting pages
-- CSS - I will style the pages by making it aesthetically pleasing, with color, borders, etc
-- JavaScript - I will add user interaction fo r(user interact or server interact)
-Service - Web service endpoints (give information, ex weather app, server with service running on it, servers have endpoints on it with different methods that provide different servers)(computer is a server, rent a server from amazon (in Virginia for this class)), javascript
-Database/Login - Persisted app and auth data (you can store data persistently in database) put authentication in database, store username and password and authenticate users)
-WebSocket - Data pushed from server, chat (pushnotications, relay chat)
-React - Web framework 
-
-
-## DO NOT EDIT YET --
+- HTML: 
+    * Objective: Structure the login, question, voting, and result pages.
+    * Explanation: Define the fundamental layout and elements for these pages using HTML.
+- CSS:
+    * Objective: Style all pages for aesthetic appeal and to fit all screen sizes.
+    * Explanation: Use CSS to enhance the visual appearance of all pages. This includes adding colors, borders, spacing, and other design elements to make it attractive and user-friendly.
+- JavaScript:
+    * Objective: Implement user interaction for login, questions, and voting.
+    * Explanation: Use JavaScript to add functionality to the pages. This means enabling users to log in on the first page and select a movie to vote for. It also allows admin to answer the four questions.
+- Service: 
+    * Objective: Set up web service endpoints for movie data.
+    * Explanation: Develop web service endpoints to retrieve movie data from IMDB and provide this data to the application. 
+    * Also: Backend service with endpoints for login, retrieving choices, submitting the votes, and retrieving the vote status.
+- Database/Login:
+    * Objective: Implement authentication in the database.
+    * Explanation: Store user authentication details (username and password) in a database. Authenticate users during the login process, enhancing security and controlling access to the application.
+    * Also: store the users, choices, and votes in database.
+- WebSocket: 
+    * Objective: Have real-time updates with WebSocket.
+    * Explanation: Use WebSocket to push real-time updates from the server. Relay movie voting tallies as they happen, which gives users  immediate feedback on the voting results.
+- React: 
+    * Objective: Use React for the web framework.
 
 ### HTMl deliverable
 
