@@ -1,3 +1,5 @@
+# Movie Selector
+
 ## Specification Deliverable
 
 ### Elevator pitch
@@ -7,7 +9,6 @@ Are you tired of spending more time debating with friends about which movie to w
 ![Photo of Startup Application Design](https://github.com/mhansen22/startup/issues/1#issue-2087622184)
 
 ### Key features
-
 - Login page: keeps application and voting secure.
 - Admin answers four questions (What genre? What time period? What age rating? What length?) to narrow down movie options.
 - Users can select one of the five movies listed to vote.
