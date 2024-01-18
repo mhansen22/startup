@@ -7,7 +7,30 @@ Are you tired of spending more time debating with friends about which movie to w
 
 ### Key features
 
+- Secure login over HTTPS
+- Ability to select the genre, time period, age rating, and length.
+- Display of choices
+- Ability to select, and change, top two choices
+- Totals from all users displayed in realtime
+- Ability for a user to lock in their top two
+- Results are persistently stored
+- Ability for admin to select and choose genre, time period, age rating, and length.
+
 ### Technologies
+
+I am going to use all the required technologies in these ways:
+
+- HTML: Use correct HTML structure for application. Two HTML pages. One for login and one for voting. Hyperlinks to choice artifact.
+- CSS - Application styling that looks good on different screen sizes, uses good whitespace, color choice and contrast.
+- JavaScript - Provides login, choice display, applying votes, display other users votes, backend endpoint calls.
+- Service - Backend service with endpoints for:
+    * login
+    * retrieving choices
+    * submitting votes
+    * retrieving vote status
+- DB/Login - Store users, choices, and votes in database. Register and login users. Credentials securely stored in database. Can't vote unless authenticated.
+- WebSocket - As each user votes, their votes are broadcast to all other users.
+- React - Application ported to use the React web framework.
 
 ## DO NOT EDIT YET --
 
