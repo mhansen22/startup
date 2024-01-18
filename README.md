@@ -4,14 +4,16 @@
 Are you tired of spending more time debating with friends about which movie to watch than actually enjoying the movie itself? Here’s a movie voting application to streamline your decision and eliminate arguments! Just answer four quick questions: What genre? What time period? What age rating? What length? Then, the app will generate the top five rated films from IMDB that meet your specific criteria. Each member of your group then gets to cast their vote for their preferred movie. Once everyone votes the app automatically tallies the votes and displays the results in real time for everyone to see. With a clear consensus, you can confidently choose the movie that the majority is excited to watch. Movies are for entertainment, not endless decision-making – let this app bring the joy back to your movie nights!
 
 ### Design
+![Photo of Startup Application Design](https://github.com/mhansen22/startup/issues/1#issue-2087622184)
 
 ### Key features
 
 - Login page: keeps application and voting secure.
 - Admin answers four questions (What genre? What time period? What age rating? What length?) to narrow down movie options.
 - Users can select one of the five movies listed to vote.
-- The five movies listed will be the top five rated for the specifications.
+- The five movies listed will be the top five rated for the specifications/questions.
 - Results are shared on end result page.
+- Results will show the movie with the most votes and the runner up, including the amount of votes each movie got.
 - Results are stored.
 
 ### Technologies
