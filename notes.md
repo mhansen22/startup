@@ -62,4 +62,8 @@ Fast-forward
 
 *** Note: The AWS interface may change over time, and users are advised to adapt to current interface variations.
 
+# GitHub Notes - 1/24/24:
+
+## HTTPS, TLS, and web certificates
+
 
