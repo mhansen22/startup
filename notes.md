@@ -60,6 +60,6 @@ Fast-forward
 8. Launch the instance and wait for it to start. Obtain the public IP address.
 9. Access the web server using the public IP address in a browser to confirm successful setup.
 
-* Note: The AWS interface may change over time, and users are advised to adapt to current interface variations.
+*** Note: The AWS interface may change over time, and users are advised to adapt to current interface variations.
 
 
