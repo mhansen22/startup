@@ -44,3 +44,22 @@ Fast-forward
 ### Link to READ.me file:
  https://github.com/mhansen22/startup/blob/main/README.md
 
+ # GitHub Notes - 1/22/24:
+
+ ## Creating an AWS server instance:
+
+ ### The process of creating an AWS server instance involves the following steps:
+
+1. Log in to the AWS console and navigate to the EC2 service.
+2. Change the region to US East (N. Virginia) for availability of the required Amazon Machine Image (AMI).
+3. Launch an instance, giving it a meaningful name and using a specified AMI ID (ami-0b009f6c56cdd83ed).
+4. Choose the instance type (t3.nano, t3.micro, or t2.micro) based on power requirements and eligibility for a free usage tier.
+5. Create or select a key pair for secure shell (SSH) access to the server.
+6. Configure network settings, ensuring auto-assign public IP address is enabled and setting up firewall rules (security group) to allow SSH, HTTP, and HTTPS traffic.
+7. Optionally, for T3 class servers, adjust the credit specification to Unlimited in Advanced details.
+8. Launch the instance and wait for it to start. Obtain the public IP address.
+9. Access the web server using the public IP address in a browser to confirm successful setup.
+
+* Note: The AWS interface may change over time, and users are advised to adapt to current interface variations.
+
+
