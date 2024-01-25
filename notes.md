@@ -1,4 +1,6 @@
-# GitHub Notes - 1/12/24:
+# CS 260 Notes
+
+## GitHub Notes - 1/12/24:
 
 ### Creating and Cloning a Repository:
 
