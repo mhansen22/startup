@@ -1,4 +1,6 @@
-# <center>CS 260 Notes</center>
+**************
+# CS 260 Notes
+**************
 
 ## GitHub Notes - 1/12/24:
 
