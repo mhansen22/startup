@@ -89,4 +89,37 @@ Caddy Integration:
 - Caddy, the web service used, has built-in ACME support
 - Tutorial provides steps for configuring Caddy to handle HTTPS requests and obtain certificates
 
+## GitHub Notes - 1/30/24:
+
+### Hypertext Markup Language
+
+HTML Foundation:
+- HTML provides the foundational structure for web applications.
+- Originally designed for web documents, it now supports single-page and multi-page applications.
+
+Basic HTML Structure:
+- HTML documents consist of elements enclosed in tags.
+- Tags provide structure, and elements can be nested within each other.
+
+Attributes:
+- Elements can have attributes that provide specific details.
+- Common attributes include id and class, written inside the element tag.
+
+Hyperlinks:
+- Hyperlinks are represented using the anchor (a) element with an href attribute.
+- They enable navigation between pages.
+
+Deployment:
+- Use the deployFiles.sh script to deploy to a production environment.
+- The script's functions: deleting previous deployments, copying files, and configuring Caddy.
+
+Common HTML Elements:
+- HTML elements, such as headings, paragraphs, lists, links, and images.
+
+Comments and Special Characters:
+- Comments are <!-- and --> in HTML files.
+- Entity syntax to escape reserved characters in content.
+
+Rendering HTML:
+- Save HTML files locally and open them in a browser for rendering.
 
