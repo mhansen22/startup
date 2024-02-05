@@ -13,35 +13,44 @@
         <main>
             <h1>Voting</h1>
             <h2>Select Top Choice</h2>
-            <thead>
-              <tr>
-                  <th>Title</th>
-                  <th>Genre</th>
-                  <th>Release Year</th>
-                  <th>Director</th>
-              </tr>
-          </thead>
-          <tbody>
-              <tr>
-                  <td>Movie 1</td>
-                  <td>Action</td>
-                  <td>2020</td>
-                  <td>Director 1</td>
-              </tr>
-              <tr>
-                  <td>Movie 2</td>
-                  <td>Drama</td>
-                  <td>2018</td>
-                  <td>Director 2</td>
-              </tr>
-              <tr>
-                  <td>Movie 3</td>
-                  <td>Comedy</td>
-                  <td>2022</td>
-                  <td>Director 3</td>
-              </tr>
-              <!-- Add more rows as needed -->
-          </tbody>
+        <form method="get" action="results.html">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Genre</th>
+                        <th>Release Year</th>
+                        <th>Director</th>
+                        <th>Vote</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Movie 1</td>
+                        <td>Action</td>
+                        <td>2020</td>
+                        <td>Director 1</td>
+                        <td><input type="radio" name="vote" value="movie1"></td>
+                    </tr>
+                    <tr>
+                        <td>Movie 2</td>
+                        <td>Drama</td>
+                        <td>2018</td>
+                        <td>Director 2</td>
+                        <td><input type="radio" name="vote" value="movie2"></td>
+                    </tr>
+                    <tr>
+                        <td>Movie 3</td>
+                        <td>Comedy</td>
+                        <td>2022</td>
+                        <td>Director 3</td>
+                        <td><input type="radio" name="vote" value="movie3"></td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+            <button type="submit">Submit Vote</button>
+        </form>
         </main>
     
         <footer>
