@@ -44,6 +44,14 @@ This is how I will implement the technologies required:
     * Objective: Use React for the web framework.
 
 ### HTMl deliverable
+For this deliverable I built out the structure of my application using HTML.
+
+- **HTML Pages** - Seven HTML pages that represent the ability to login, choice user type, create or enter a voting code, vote, and show results.
+- **Links** - The login page automatically links to the user page, which links to the subseuqeunt code page, which links to the voting page.
+- **Text** - Each of the voting choices is represented by a textual description.
+- **Images** - I added images
+- **DB/Login** - Input box and submit button for login. The voting winner represents data pulled from the database.
+- **WebSocket** - 
 
 ### CSS deliverable
 
