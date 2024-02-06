@@ -50,7 +50,7 @@ I built out the structure of my application using HTML -
 - **Links** - The login page automatically links to the user page, which links to the subseuqeunt access code page (based on whether the user is an admin or guest), which links to the voting page, which links to the results page.
 - **Text** - The movie winner and runner up are represented by a textual description, as well as the number of votes each got. (All seven pages have text, either placeholder or intructions for the user)
 - **Images** - I added two images (mainly placeholder for now). One is at the start on the index page and the other is at the end on the results page. This makes my application more interesting and visually appealing.
-- **DB/Login** - Input boxes and submit button for login. The votes for the winner and runner up represent data pulled from the database. The database stores the users, choices, and votes.
+- **DB/Login** - Input boxes and submit button for login. The votes for the winner and runner up represent data pulled from the database. The database stores the users, choices, and votes. (Used radio from for choices and votes)
 - **WebSocket** - The count of the votes represent the number of real time votes.
 
 ### CSS deliverable
