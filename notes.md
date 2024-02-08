@@ -139,3 +139,20 @@ Complex Stacks: In commercial stacks, careful consideration is necessary, taking
 Caution Against Discontent: Discontent with not using the latest technologies may cause unnecessary disruption. It's essential to focus on value and validate changes that could bring significant benefits to the team.
 
 Example of a Complex Tech Stack: Illustrated with a tech stack from a small web application company, emphasizing the importance of selecting components based on various factors for a successful and efficient application.
+
+## GitHub Notes - 2/7/24:
+
+## CSS Flexbox
+
+CSS Flexbox is a powerful layout model used to create flexible and responsive web designs. It allows for easy arrangement of elements within a container, adjusting dynamically to various screen sizes and orientations.
+
+Key Points:
+Deeper Dive Reading: Resources like MDN Flexbox and CSS Tricks provide comprehensive guides on Flexbox concepts and usage.
+Flex Layout: Utilizes the flex property to control the behavior of flex items within a flex container.
+Header, Main, Footer Layout:
+- Header and footer fixed heights: flex: 0 <height>;
+- Main area occupying remaining space: flex: 1;
+Main Content: Split into two sections using Flexbox.
+Responsive Design:
+- Utilizes flex-direction and @media queries for responsiveness.
+Adjusts layout based on viewport dimensions and orientation changes.
