@@ -156,3 +156,4 @@ Main Content: Split into two sections using Flexbox.
 Responsive Design:
 - Utilizes flex-direction and @media queries for responsiveness.
 Adjusts layout based on viewport dimensions and orientation changes.
+
