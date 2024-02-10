@@ -157,3 +157,27 @@ Responsive Design:
 - Utilizes flex-direction and @media queries for responsiveness.
 Adjusts layout based on viewport dimensions and orientation changes.
 
+## GitHub Notes - 2/7/24:
+
+## CSS Frameworks
+
+- CSS frameworks make web development easier with common functions and components.
+- They save time by packaging reusable patterns into open-source repositories.
+- Bootstrap ensures a consistent user experience across websites.
+- Tailwind CSS applies styles directly to HTML elements for a unique approach.
+- Bootstrap is popular for its extensive features and ease of use.
+- Integration involves linking to CSS files via a CDN.
+- JavaScript components can be added from Bootstrap's CDN.
+- Bootstrap can be downloaded via NPM for self-hosting.
+- Components are implemented easily using predefined CSS classes.
+- Components like buttons, navigation bars, and cards improve UI design and work well on different devices.
+
+- To start using Bootstrap, create a new HTML file.
+- Include the following meta tag in the <head> section for responsive behavior: <meta name="viewport" content="width=device-width, initial-scale=1">.
+- Link Bootstrap's CSS file by adding this line in the <head> section: <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">.
+- Include Bootstrap's JavaScript bundle before the closing </body> tag with this line: <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>.
+- If needed, include Popper for dropdowns, popovers, and tooltips by adding these lines:
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
+- Write your HTML code within the <body> tags to structure your web page content.
+- Open your HTML file in a web browser to see the Bootstrap styling and functionality applied to your content.
