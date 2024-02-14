@@ -15,6 +15,12 @@ header {
     color: #fff;
     padding: 20px;
 }
+header h3 {
+    text-align: center;
+}
+form {
+    text-align: center;
+}
 
 header h1 {
     margin: 0;
@@ -25,12 +31,8 @@ main {
     padding: 20px;
 }
 
-.question {
-    margin-bottom: 20px;
-}
-
-.question h2 {
-    margin-bottom: 10px;
+main h3 {
+    text-align: center;
 }
 
 footer {

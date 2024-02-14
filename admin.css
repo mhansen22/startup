@@ -24,6 +24,12 @@ main {
     flex: 1;
     padding: 20px;
 }
+main p {
+    text-align: center;
+}
+main h2 {
+    text-align: center;
+}
 
 .question {
     margin-bottom: 20px;
@@ -80,7 +86,9 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin: 0 10px;
+    /* margin: 0 10px; */
+    margin: 10px 0;
+    max-width: calc(50% - 20px);
 }
 
 button:hover {
@@ -89,4 +97,8 @@ button:hover {
 
 button:focus {
     outline: none;
+}
+
+form {
+    align-items: center;
 }
