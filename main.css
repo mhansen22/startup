@@ -9,6 +9,7 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    flex: 1;
 }
 
 header {
@@ -37,6 +38,7 @@ footer {
     color: #fff;
     text-align: center;
     padding: 20px;
+    margin-top: auto;
 }
 
 footer hr {
