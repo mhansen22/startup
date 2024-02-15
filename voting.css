@@ -109,3 +109,9 @@ button:focus {
 main div {
     padding: 20px;
 }
+
+@media (max-width: 768px) {
+    footer {
+        display: none;
+    }
+}

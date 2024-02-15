@@ -61,7 +61,7 @@ I styled my application using CSS -
 - [x] - done - Prerequisite: Notes in my startup Git repository README.md file (here).
 - [x] - done - 30% Header, footer, and main content body. Used flex to layout sections.
 - [x] - done - 20% Navigation elements. Links (Github and home) highlight on hover.
-- [x] - done - 10% Responsive to window resizing. Looks great on all mediums.
+- [x] - done - 10% Responsive to window resizing. Looks great on all mediums. Footer disapears when page gets too small for all pages. Buttons and text re-center and change size when page gets too small.
 - [x] - done - 20% Application elements. Buttons are responsive and link to the correct pages. User can select vote and enter in access code. Uses good contrast. Pages are standardized.
 - [x] - done - 10% Application text content. Text is displayed using the Arial, sans-serif font. (Consistent).
 - [x] - done - 10% Application images. I made the images blend seemlessly with the background. The photos add dimension to the application styling.

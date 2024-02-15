@@ -90,3 +90,10 @@ button:hover {
 button:focus {
     outline: none;
 }
+
+@media (max-width: 768px) {
+    footer {
+        display: none;
+    }
+}
+

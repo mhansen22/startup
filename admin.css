@@ -115,3 +115,9 @@ main span {
     color: blue;
 }
 
+@media (max-width: 768px) {
+    footer {
+        display: none;
+    }
+}
+
