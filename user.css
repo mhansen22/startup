@@ -19,15 +19,17 @@ header {
 header h1 {
     margin: 0;
 }
-table {
-    
-}
 
 main {
     flex: 1;
     padding: 20px;
 }
 main h2 {
+    text-align: center;
+    padding: 30px;
+}
+
+main h2, main h1 {
     text-align: center;
     padding: 30px;
 }

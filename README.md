@@ -54,7 +54,15 @@ I built out the structure of my application using HTML -
 - **WebSocket** - The count of the votes represent the number of real time votes.
 
 ### CSS deliverable
-
+[x] - done - Prerequisite: Simon CSS deployed to my production environment
+[x] - done - Prerequisite: A link to my GitHub startup repository prominently displayed on my application's home page (and all pages)
+[x] - done - Prerequisite: Notes in my startup Git repository README.md file (here)
+[x] - done - 30% Header, footer, and main content body. Used flex to layout sections.
+[x] - done - 20% Navigation elements. Links (Github and home) highlight on hover.
+[x] - done - 10% Responsive to window resizing. Looks great on all mediums.
+[x] - done - 20% Application elements. Buttons are responsive and link to the correct pages. User can select vote and enter in access code.
+[x] - done - 10% Application text content. Text is displayed using the Arial, sans-serif font.
+[x] - done - 10% Application images. I made the images blend seemlessly with the background.
 ### JavaScript deliverable
 
 ### Service deliverable
