@@ -1,22 +1,17 @@
-
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-}
-
-.container {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    flex: 1;
 }
 
 header {
     background-color: #333;
     color: #fff;
     text-align: center;
-    padding: 30px;
+    padding: 20px;
 }
 
 header h1 {
@@ -37,8 +32,7 @@ footer {
     background-color: #333;
     color: #fff;
     text-align: center;
-    padding: 20px;
-    margin-top: auto;
+    padding: 10px;
 }
 
 footer hr {
@@ -51,6 +45,7 @@ footer hr {
 footer a {
     color: #a4d4ff;
     text-decoration: none;
+    font-size: 16px;
 }
 
 footer a:hover {
@@ -95,7 +90,6 @@ form input[type="password"] {
 .buttons button:hover {
     background-color: #0056b3;
 }
-
 
 @media (max-width: 768px) {
     header img {
