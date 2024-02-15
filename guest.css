@@ -31,8 +31,9 @@ main {
     padding: 20px;
 }
 
-main h3 {
+main h2 {
     text-align: center;
+    padding: 30px;
 }
 
 footer {
