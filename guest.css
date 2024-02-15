@@ -70,12 +70,6 @@ header sup {
 }
 
 button {
-    /* background-color: #007bff;
-    border: none;
-    color: #fff;
-    padding: 10px 20px;
-    cursor: pointer;
-    border-radius: 20px; */
     padding: 10px 20px;
     font-size: 1em;
     background-color: #007bff;
@@ -83,7 +77,7 @@ button {
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    margin: 0 10px;
+    margin: 10px 10px;
 }
 
 button:hover {
@@ -99,4 +93,3 @@ button:focus {
         display: none;
     }
 }
-
