@@ -37,6 +37,29 @@
           <br />
           <a href="https://github.com/mhansen22/startup">GitHub</a>
         </footer>
+
+
+        <script>
+          function handleLogin(event) {
+              event.preventDefault();
+  
+              const username = document.getElementById("Username").value;
+              const password = document.getElementById("password").value;
+  
+              if (username.trim() === "" || password.trim() === "") {
+                  alert("Please enter both username and password.");
+                  return;
+              }
+  
+              window.location.href = "user.html";
+          }
+  
+          document.getElementById("loginForm").addEventListener("submit", handleLogin);
+  
+          document.getElementById("createAccountBtn").addEventListener("click", function() {
+              alert("Create Account button clicked!");
+          });
+      </script>
     
 </body>
 </html>
