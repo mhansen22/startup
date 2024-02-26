@@ -16,10 +16,10 @@
         <main>
           <h2>Ready to Start Voting?</h2>
           <p>Login to Start!</p>
-          <form method="get" action="admin.html">
+          <form id="loginForm" method="get" action="admin.html">
 
-            <label for="Username">Username</label>
-            <input type="text" id="Username" placeholder="Username" required/>
+            <label for="usernameDisplay">Username</label>
+            <input type="text" id="usernameDisplay" placeholder="Username" required/>
 
             <label for="password">Password</label>
             <input type="password" id="password" placeholder="Password" required />
@@ -40,25 +40,48 @@
 
 
         <script>
-          function handleLogin(event) {
-              event.preventDefault();
+          // function handleLogin(event) {
+          //     event.preventDefault();
   
-              const username = document.getElementById("Username").value;
-              const password = document.getElementById("password").value;
+          //     const username = document.getElementById("Username").value;
+          //     const password = document.getElementById("password").value;
   
-              if (username.trim() === "" || password.trim() === "") {
-                  alert("Please enter both username and password.");
-                  return;
-              }
+          //     if (username.trim() === "" || password.trim() === "") {
+          //         alert("Please enter both username and password.");
+          //         return;
+          //     }
   
-              window.location.href = "user.html";
+          //     window.location.href = "user.html";
+          // }
+  
+          // document.getElementById("loginForm").addEventListener("submit", handleLogin);
+  
+          // document.getElementById("createAccountBtn").addEventListener("click", function() {
+          //     alert("Create Account button clicked!");
+          // });
+
+
+
+
+        function handleLogin(event) {
+          event.preventDefault();
+
+          const username = document.getElementById("Username").value;
+          const password = document.getElementById("password").value;
+
+          if (username.trim() === "" || password.trim() === "") {
+              alert("Please enter both username and password.");
+              return;
           }
-  
-          document.getElementById("loginForm").addEventListener("submit", handleLogin);
-  
-          document.getElementById("createAccountBtn").addEventListener("click", function() {
-              alert("Create Account button clicked!");
-          });
+
+          window.location.href = `user.html?username=${username}`;
+        }
+
+        document.getElementById("loginForm").addEventListener("submit", handleLogin);
+
+        document.getElementById("createAccountBtn").addEventListener("click", function () {
+          alert("Create Account button clicked!");
+        });
       </script>
     
 </body>
