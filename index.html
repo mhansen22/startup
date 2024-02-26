@@ -18,8 +18,8 @@
           <p>Login to Start!</p>
           <form id="loginForm" method="get" action="admin.html">
 
-            <label for="usernameDisplay">Username</label>
-            <input type="text" id="usernameDisplay" placeholder="Username" required/>
+            <label for="Username">Username</label>
+            <input type="text" id="Username" placeholder="Username" required/>
 
             <label for="password">Password</label>
             <input type="password" id="password" placeholder="Password" required />
@@ -82,6 +82,23 @@
         document.getElementById("createAccountBtn").addEventListener("click", function () {
           alert("Create Account button clicked!");
         });
+
+
+
+       
+        const adminCode = "code_here";
+
+        function joinSession() {
+            const adminCodeInput = document.getElementById("adminCodeInput").value.trim();
+            const statusMessage = document.getElementById("statusMessage");
+
+            if (adminCodeInput === adminCode) {
+                statusMessage.textContent = "Successfully joined the session!";
+          
+            } else {
+                statusMessage.textContent = "Invalid admin code. Please try again.";
+            }
+        }
       </script>
     
 </body>
