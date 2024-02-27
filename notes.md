@@ -596,16 +596,24 @@ You don't need to worry about the detail about how this all works. The point of 
 
 The HTML looks like the following and basically has a simple card with text in it.
 
+```html
+
 <body>
   <div class="card" onclick="titleClick()">Click Here</div>
 </body>
+
+```
 The JavaScript handles it when you click on the card, and the JavaScript changes the text.
+
+```js
 
 function titleClick() {
   document.querySelector('.card').textContent = 'Wow! Magic!';
 }
-The CSS is a bit more complex to cover in detail, but it basically handles the styling and animation. For example, the CSS for the card specifies the width and height, where it is positioned, what font to use, and what color it should be.
 
+```
+The CSS is a bit more complex to cover in detail, but it basically handles the styling and animation. For example, the CSS for the card specifies the width and height, where it is positioned, what font to use, and what color it should be.
+```js
 .card {
   background: #191c29;
   width: var(--card-width);
@@ -642,6 +650,7 @@ The rotating border is animated with the following CSS that tells what colors to
     --rotate: 360deg;
   }
 }
+```
 
 ## Git
 
@@ -656,61 +665,71 @@ Linus Torvalds
 Installing Git
 Before we can talk about Git you need to make sure it is installed in your development environment. Open a console and type git --version.
 
+```python
+
 ➜  git --version
 git version 2.32.0 (Apple Git-132)
+```
 If you do not see something like that, then you need to follow these instructions to install Git.
 
 What is Git?
 Git provides two valuable functions. First, it allows you to track versions of files in a directory. Second, it allows you to clone all of those versions to a different location, usually to a different computer. We are going to focus on tracking versions in this instruction and cover cloning repositories when we talk later about GitHub.
 
 You can track file versions of any files in a directory by initializing Git for that directory. You can do this right now by creating a new directory in a console window and initializing it as a Git repository.
-
+```python
 ➜  mkdir playingWithGit
 ➜  cd playingWithGit
 ➜  git init
+```
 If you list all files in the directory you will see that you now have a hidden directory named .git.
-
+```python
 ➜  ls -la
 total 0
 drwxr-xr-x   3 lee  staff    96 Dec  1 22:59 .
 drwxr-xr-x+ 54 lee  staff  1728 Dec  1 23:00 ..
 drwxr-xr-x   9 lee  staff   288 Dec  1 22:59 .git
+```
 The .git directory is where all of the versions get stored. Now use the echo command to create a file so that we can see how versioning works. After creating the new file, use git status to tell you what git is doing.
-
+```python
 ➜ echo hello world > hello.txt
 ➜ git status
+```
 
 On branch master
 No commits yet
 Untracked files:
+```html
   (use "git add <file>..." to include in what will be committed)
  hello.txt
-
+```
 nothing added to commit but untracked files present (use "git add" to track)
 git status tells you that it detects a new file named hello.txt, but it isn't currently tracking versions for that file. To begin tracking versions you need to add it. Usually you track all files in a repository directory and so you can tell Git to track everything that it doesn't know about with git add .. Make sure you include the period at the end of the command. Follow the add command with another call to git status in order to see what the repo looks like now.
-
+```python
 ➜  git add .
 ➜  git status
-
+```
 On branch master
 No commits yet
 Changes to be committed:
+```html
   (use "git rm --cached <file>..." to unstage)
  new file:   hello.txt
+ ```
 Now Git tells us that it has staged the file hello.txt, meaning it is ready to be committed as a version in the repository. We commit a version with the commit command. We always want to have a meaningful comment about the version we are committing and so we use the -m parameter to provide a message that will live with the version. Follow this with another call to git status.
-
+```python
 ➜  git commit -m "initial draft"
 [master (root-commit) d43b07b] initial draft
  1 file changed, 1 insertion(+)
  create mode 100644 hello.txt
 
 ➜  git status
+```
 On branch master
 nothing to commit, working tree clean
 Congratulations! You have just committed your first file to a Git repository. It is important to note that we were only working with a single file in this example. However, a commit can represent multiple files. You just need to add them all before you execute the commit. Also, note that the point of the stage, git add step, is so that you can commit some files while still leaving other modified files out of the commit. Only files you've staged will be committed.
 
 Let's make an edit to our file and commit it again. This time we will tell Git that we want to add all the modified tracked files to our commit, without having to git add them again, by including the -a parameter along with our message parameter.
-
+```python
 ➜  echo goodbye world > hello.txt
 
 ➜  git commit -am "changed greeting to reflect the present mood"
@@ -730,28 +749,32 @@ Date:   Thu Dec 1 23:32:22 2022 -0700
 commit d43b07b8890f52defb31507211ba78785bf6dccf
 Author: Lee
 Date:   Thu Dec 1 23:29:11 2022 -0700
+```
 
     initial draft
 This shows both commits with the associated comments.
 
 Commit SHA
 Every commit has a unique identifier that is generated by hashing the file along with the timestamp using the SHA hashing algorithm. You can always refer to a specific commit in your version history by using its SHA. For example, if we want to temporarily switch back to a previous version to see what it contains we can use the checkout command. You only need to provide the first few characters of the SHA.
-
+```python
 ➜  git checkout d43b07b8890f
-
+```
 Note: switching to 'd43b07b8890f'.
 HEAD is now at d43b07b initial draft
-
+```python
 ➜  cat hello.txt
 hello world
+```
 The above output omits a big message saying that you are no longer looking at the latest version, but the important thing is that you can see that we are now looking at our old version. Note that you don't want to make commits at this point since it will create a branch that is not for the latest code. To get back to the top of the version chain, use the checkout command and reference the branch name, which is by default master.
-
+```python
 ➜  git checkout master
+```
 Previous HEAD position was d43b07b initial draft
 Switched to branch 'master'
-
+```python
 ➜  cat hello.txt
 goodbye world
+```
 Now we are back to our latest version.
 
 The following diagram shows how your commits move from your working directory, to staging them for a commit, and then committing them to a repository.
@@ -762,7 +785,7 @@ A commit is a full snapshot of what was staged from your directory at the time o
 
 Diff
 Most of the time you don't want to reverse back to an earlier commit. Instead you just want to compare the differences between commits. We can do that with the diff command. You can specify two SHAs that you would like to compare, or you can use the HEAD variable, which always points to the commit you're currently looking at. To refer to earlier commits you just add ~ and the numerical distance from HEAD that you want to reference. In this case we will compare HEAD and HEAD~1.
-
+```python
 ➜  git diff HEAD HEAD~1
 diff --git a/hello.txt b/hello.txt
 index 3b18e51..eeee2af 100644
@@ -771,6 +794,7 @@ index 3b18e51..eeee2af 100644
 @@ -1 +1 @@
 -hello world
 +goodbye world
+```
 You can see that we made a change to hello.txt by removing hello world and adding goodbye world.
 
 Branches
@@ -827,9 +851,9 @@ You clone a repository by providing the GitHub repository's URL as a parameter t
 GitHub clone URL
 
 When you clone a repository it is placed in a subdirectory named with the name of the repository. So make sure you are in the directory where you keep all of your source repositories before you run the command.
-
+```python
 ➜  git clone https://github.com/webprogramming260/startup-example.git
-
+```
 Cloning into 'startup-example'...
 remote: Total 4 (delta 0), reused 0 (delta 0), pack-reused 0
 Receiving objects: 100% (4/4), done.
@@ -841,7 +865,7 @@ You can now make changes to the files in the repository and commit those changes
 GitHub pull
 
 The following demonstrates console commands for making a change to a test.md file, committing it, and then pushing it up to GitHub. Of course you can also do this using the Git interface of VS Code.
-
+```python
 ➜  printf "\nChange from my development environment!\n" >> test.md
 
 ➜  git add test.md
@@ -849,6 +873,7 @@ The following demonstrates console commands for making a change to a test.md fil
 ➜  git commit -am "update(notes) thoughts about startup applications"
 
 ➜  git push
+```
 This is the pattern that you want to make a reflexive part of your development process.
 
 Pull the repository's latest changes from GitHub (git pull)
@@ -858,10 +883,11 @@ Push the changes to GitHub (git push)
 ⚠ Note: The first time you make a push request to a repository Git will ask you how you want to identify yourself and what credential (e.g. password) to use in order to authenticate with GitHub. You will need to create a Personal Access Token and provide that as your password.
 
 *** Please tell me who you are
-
+```python
 Run
   git config --global user.email "you@example.com"
   git config --global user.name "Your name"
+```
 Make sure you use the email that you provided for your GitHub account.
 
 After pushing changes to GitHub, you can then view the changes on GitHub with your browser. In the example above, you would see the changes to the test.md file. You can also edit and commit changes directly from GitHub. When looking at a repository file on GitHub you will see a little pencil in the top right hand corner of the file. If you press that you will enter edit mode. You use that to modify the file and then commit the changes with an appropriate comment.
@@ -869,35 +895,39 @@ After pushing changes to GitHub, you can then view the changes on GitHub with yo
 GitHub edit
 
 Now there is a commit that GitHub has, but you do not have in your development environment. If we run the fetch Git command, you will get the latest information about the changes on GitHub without actually changing your local repository. We then run the status Git command to see the differences between the clones and see that we are missing a commit. You can pull it down using the pull Git command. You can also use the Git functionality in VS Code to view the status and sync up your repository.
-
+```python
 ➜  git fetch
 ➜  git status
+```
 Your branch is behind 'origin/main' by 1 commit, and can be fast-forwarded.
   (use "git pull" to update your local branch)
-
+```python
 ➜  git pull
 Updating d13a9ce..cafe81a
 Fast-forward
  test.md | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
+ ```
 After running the pull command, your development clone and the GitHub clone are now the same.
 
 Handling merge conflicts
 By pushing and pulling often, everyone keeps an up to date copy of the repository. This is important so that you don't run into merging problems caused by two peers modifying the exact same code. Merging only becomes something you have to deal with when two people modify the exact same line of code. However, when you have two peers working together you are always going to have a merge conflict at some point in time and so let's discuss how to handle this.
 
 We can simulate a merge conflict by editing a line in a file and committing the file in your development environment, and before pushing that change, modifying the same line using GitHub. Now, run fetch and status again in your console.
-
+```python
 ➜  git fetch
 ➜  git status
+```
 Your branch and 'origin/main' have diverged,
 and have 1 and 1 different commits each, respectively.
   (use "git pull" to merge the remote branch into yours)
 This shows that the cloned repositories have diverged from each other. Normally this is fine and we can just push and pull the different commits, but if we do that this time, we will get an error because the exact same line was changed in the two different commits. Git doesn't know which change to keep.
-
+```python
 ➜  git pull
 
 Auto-merging test.md
 CONFLICT (content): Merge conflict in test.md
+```
 Automatic merge failed; fix conflicts and then commit the result.
 We now need to resolve the merge conflict that it says has happened with our test.md file. If you are using VS Code with the GitLens extension installed it will visually walk you through this process. However, so you can understand what is going on, we will do this using the console. The first step is to open up test.md in an editor. You will see that git has injected lines that highlight where the conflict is. Both your local change and the change made on GitHub are included.
 
@@ -906,12 +936,13 @@ An example startup application
 Change from my development environment!
 
 Change from GitHub
-
+```python
 <<<<< HEAD
 Conflict change made in development environment
 =======
 Conflict change made in GitHub
 >>>>> b9f4c53c91eff509993d7291e60148f903827de0
+```
 We resolve the conflict by modifying the file to remove the textual conflict delimiters and modifying the file to keep the changes we want. When we are done editing, our file contains what we want from both commits.
 
 # startup-example
@@ -920,9 +951,10 @@ An example startup application
 
 Change from my development environment and from GitHub
 Now that the conflict is resolved we commit our resolution and push up the result.
-
+```python
 ➜  git commit -am "merge(notes) combined both edits"
 ➜  git push
+```
 If you go look at the file again on GitHub you will see the additional commit in the history and the result of our merge in the file content.
 
 README.md
@@ -1026,12 +1058,13 @@ First web server
 — First web server (Source: Cern)
 
 Originally, HTML contained only 18 elements, or tags. The latest version of HTML has now grown to over 100. The initial explosion of elements was caused in part by browser vendors racing to create differentiating functionality in order to gain market share. Since 1996 the HTML specification has been controlled by the W3C. The following is an example of a simple HTML document.
-
+```html
 <html>
   <body>
     <p>Hello world!</p>
   </body>
 </html>
+```
 HTTP and URL
 While HTML was an incredible step forward, Berners-Lee also made other significant contributions. This included the definition of the HyperText Transfer Protocol (HTTP) and the Uniform Resource Locator (URL). These two definitions specify how web documents are addressed and transmitted across the Internet. The following gives an example of a URL and HTTP request.
 
@@ -1049,13 +1082,14 @@ Hakon Lie
 — Håkon Wium Lie (Source: Medium.com)
 
 By 1996, CSS became a standard and all the major browsers began to implement the functionality. Unfortunately, for the first years of CSS the same proprietary wars that plagued HTML also affected CSS. Much of the work on version 2.1 was to remove error and make all the features of CSS compatible. Here is a simple example of CSS that defines the white spacing, color, and shadowing of paragraph text.
-
+```js
 p {
   margin: 0;
   padding: 20px 0;
   color: #00539f;
   text-shadow: 3px 3px 1px black;
 }
+```
 The ability of CSS to style a web page has increased significantly from its original implementation. With modern CSS a web programmer can import fonts, animate HTML elements, respond to user actions, and dynamically alter the entire layout of the page based on the size of a device and its orientation.
 
 JavaScript
@@ -1070,13 +1104,15 @@ Brendan Eich
 In 1996 Netscape turned control of JavaScript over to ECMA International in an attempt to standardize the definition of the language. At that point JavaScript officially became know as ECMAScript, although it is still commonly referred to as JavaScript.
 
 Here is an example of a simple JavaScript program that combines variables and prints out the result.
-
+```js
 const join = (...a) => {
   return a.reduce((accumulator, currentValue) => accumulator + currentValue);
 };
 
+
 console.log(join(1, 2));
 console.log(join('hello', ' ', 'world', '!'));
+```
 The first decade of JavaScript was turbulent as each of the major browser vendors attempted to introduce new proprietary features in order to gain market share. Eventually in 2009 the major vendors agreed on the ECMAScript 5 standard and in 2015 ECMAScript 6 was released as the last major feature upgrade. Since then minor releases have taken the year of their release as their version number.
 
 JavaScript outside the browser
@@ -1140,11 +1176,12 @@ Contains the definitions for routing HTTP requests that Caddy receives. This is 
 HTML files: ~/public_html
 
 This is the directory of files that Caddy serves up when requests are made to the root or your web server. This is configured in the Caddyfile discussed above. If you actually look at the Caddyfile you will see that the static file server is mapped to /usr/share/caddy. That is the location that the file link in the Ubuntu user's home directory, ~/public_html, is pointing to.
-
+```js
 :80 {
       root * /usr/share/caddy
       file_server
 }
+```
 Therefore, according to this configuration, whenever Caddy receives an HTTP request for any domain name on port 80 it will use the path of the request to find a corresponding file in this directory. For example, a request for http://yourdomainname/index.html will look for a file named index.html in the public_html directory.
 
 ## HTTPS, TLS, and web certificates
@@ -1157,7 +1194,7 @@ During the first couple decades of the web, it was pretty common for websites to
 
 HTTPS and TLS
 The secure version of HTTP is called Secure Hypertext Transport Protocol (HTTPS). This is basically HTTP with a negotiated secure connection that happens before any data is exchanged. Having a secure connection means that all the data is encrypted using the TLS protocol. TLS is sometimes referred to by a now unsecure predecessor protocol named SSL. TLS works by negotiating a shared secret that is then used to encrypt data. You can see the actual negotiation that happens by using the console browser based application curl, along with the -v parameter to see the verbose output of the HTTPS exchange. The > /dev/null redirection throws away the actual HTTP response, since we only care about the negotiation, by redirecting the output to the null device.
-
+```python
 ➜  curl -v -s https://byu.edu > /dev/null
 
 *   Trying 128.187.16.184:443...
@@ -1189,6 +1226,7 @@ The secure version of HTTP is called Secure Hypertext Transport Protocol (HTTPS)
 *  subjectAltName: host "byu.edu" matched cert's "byu.edu"
 *  issuer: C=US; O=DigiCert Inc; CN=DigiCert TLS RSA SHA256 2020 CA1
 *  SSL certificate verify ok.
+```
 You can see that the negotiation is fairly complex as it involves multiple steps in the handshake. A core piece of the handshake is the exchange of a web certificate that identifies the domain name of the server creating the secure connection. The browser will compare the certificate domain name to the one represented in the URL and if they don't match, or the certificate is invalid or out of date, it will display a massive warning.
 
 In the example above we asked for byu.edu and got a valid certificate for byu.edu and so everything looks great.
@@ -1221,21 +1259,24 @@ For our work we are using the web service Caddy to act as a gateway to our diffe
 Open a console window.
 
 Use the ssh console program to shell into your production environment server.
-
+```python
 ➜  ssh -i [key pair file] ubuntu@[yourdomainnamehere]
+```
 for example,
-
+```python
 ➜  ssh -i ~/keys/production.pem ubuntu@myfunkychickens.click
+```
 Edit Caddy's configuration (Caddyfile) file found in the ubuntu user's home directory.
-
+```python
 ➜  cd ~
 ➜  vi Caddyfile
+```
 Modify the Caddy rule for handling requests to port 80 (HTTP), to instead handle request for your domain name. By not specifying a port the rule will serve up files using port 443 (HTTPS), and any request to port 80 will automatically redirect the browser to port 443. Replace :80 with your domain name (e.g. myfunkychickens.click). Make sure that you delete the colon.
 
 Modify the Caddy rules that route the traffic for the two web applications that we will build. To do this replace the two places where yourdomain appears with your domain name (e.g. myfunkychickens.click).
 
 Review the Caddyfile to make sure it looks right. If your domain name was myfunkychickens.click it would look like the following.
-
+```js
 myfunkychickens.click {
    root * /usr/share/caddy
    file_server
@@ -1260,6 +1301,7 @@ simon.myfunkychickens.click {
    header -etag
    header Access-Control-Allow-Origin *
 }
+```
 Save the file and exit VI (:wq)
 
 Restart Caddy so that your changes take effect. Note that this requires you to use sudo (super user do) to elevate your user to have the rights to restart the gateway.
@@ -1305,12 +1347,12 @@ If this displays hello then you are on the right track. If that doesn't work the
 
 Viewing the file system
 One of the primary purposes of a console application is to view the files on the computer. The files on a computer are organized into a tree structure of nodes called directories. At any given point in time your console is located at one of the directories in the file system. You can see which directory you are in with the pwd (present working directory) command.
-
+```python
 ➜  pwd
-
+```
 /Users/student/byu//webprogramming260
 You can list all of the files in the directory with ls (list files). Most command line applications take parameters that are specified after you type the application name. For example, ls can list all files (even hidden ones) in a long format if you provide the parameter -la.
-
+```python
 ➜ ls -la
 
 total 16
@@ -1318,6 +1360,7 @@ total 16
 -rw-r--r--  1 lee  staff    82B Nov 19 08:47 README.md
 drwxr-xr-x  4 lee  staff   128B Nov 19 08:48 profile
 drwxr-xr-x  4 lee  staff   128B Nov 19 08:47 react
+```
 Executing commands
 The other primary purpose of the console is to execute commands. You already did this in the previous section when you executed commands for working with the file system. However, console commands can perform many different operations. Here are some basic commands that you show experiment with.
 
@@ -1349,6 +1392,7 @@ dig - Show the DNS information for a domain
 man - Look up a command in the manual
 You can also chain the input and output of commands using special characters
 
+```python
 | - Take the output from the command on the left and pipe, or pass, it to the command on the right
 > - Redirect output to a file. Overwrites the file if it exists
 >> - Redirect output to a file. Appends if the file exists
@@ -1359,7 +1403,7 @@ There are also keystrokes that have special meaning in the console.
 
 CTRL-R - Use type ahead to find previous commands
 CTRL-C - Kill the currently running command
-
+```
 
 ## Editors
 
@@ -1474,10 +1518,11 @@ The first thing you noticed is that this looks like a simple text document. That
 
 Elements and tags
 HTML elements are represented with enclosing tags that may enclose other elements or text. For example, the paragraph element, and its associated tag (p), designate that the text is a structural paragraph of text. When we talk about tags we are referring to a delimited textual name that we use to designate the start and end of an HTML element as it appears in an HTML document. Tags are delimited with the less than (<) and greater than (>) symbols. A closing tag will also have a forward slash (/) before its name.
-
+```html
 <p>Hello world</p>
+```
 We can continue adding structure to the page with additional elements. Each of these elements may contain other elements that provide the structure of our web page. The html element represents the top level page structure. The head element contains metadata about the page and the page title. The body element represents the content structure. The main element represents the main content structure, as opposed to things like headers, footers, asides, and navigation content. These additional elements result in the following HTML page.
-
+```html
 <html>
   <head>
     <title>My First Page</title>
@@ -1488,21 +1533,24 @@ We can continue adding structure to the page with additional elements. Each of t
     </main>
   </body>
 </html>
+```
 However, when we render the HTML in a browser it would look exactly the same as our original simple text example. The reason for that is that HTML is almost completely about structure. The visual appearance of the web page won't really change until we start styling the page with CSS.
 
 HTML Hello world
 
 Attributes
 Every HTML element may have attributes. Attributes describe the specific details of the element. For example, the id attribute gives a unique ID to the element so that you can distinguish it from other elements. The class attribute is another common element attribute that designates the element as being classified into a named group of elements. Attributes are written inside the element tag with a name followed by an optional value. You can use either single quotes (') or double quotes (") to delimit attribute values.
-
+```html
 <p id="hello" class="greeting">Hello world</p>
+```
 Hyperlinks
 One of the core features that made the web so successful was the ability to create hyperlinks that take you from one page to another another with a simple click. A hyperlink in HTML is represented with an anchor (a) element that has an attribute containing the address of the hyperlink reference (href). A hyperlink to BYU's home page looks like this:
-
+```html
 <a href="https://byu.edu">Go to the Y</a>
+```
 Complete example
 HTML defines a header (<!DOCTYPE html>) that tells the browser the type and version of the document. You should always include this at the top of the HTML file. We can now add the header, some attributes, and more content to our document for a full example.
-
+```html
 <!DOCTYPE html>
 <html lang="en">
   <body>
@@ -1517,6 +1565,7 @@ HTML defines a header (<!DOCTYPE html>) that tells the browser the type and vers
     </main>
   </body>
 </html>
+```
 Intro HTML Example
 
 Notice that the rendered document has almost no styling. That is because the entire purpose of HTML is to provide content and structure. The layout of the content is left almost entirely up to Cascading Stylesheets (CSS). When styling was introduced with CSS, all of the HTML elements that defined style such as font, strike, and plaintext were deprecated.
@@ -1559,12 +1608,16 @@ video	Video content
 svg	Scalable vector graphic content
 iframe	Inline frame of another HTML page
 Comments
-You can include comments in your HTML files by starting the comment with <!-- and ending it with -->. Any text withing a comment block will be completely ignored when the browser renders it.
-
+You can include comments in your HTML files by starting the comment with 
+```html
+<!-- and ending it with -->`
+``. Any text withing a comment block will be completely ignored when the browser renders it.
+```html
 <!-- commented text -->
+```
 Special characters
 HTML uses several reserved characters for defining its file format. If you want to use those characters in your content then you need to escape them using the entity syntax. For example, to display a less than symbol (<) you would instead use the less than entity (&lt;). You can also use the entity syntax to represent any unicode character.
-
+```html
 Character	Entity
 &	&amp;
 <	&lt;
@@ -1572,6 +1625,7 @@ Character	Entity
 "	&quot;
 '	&apos;
 😀	&#128512;
+```
 HTML Versions
 Understanding when different HTML features were introduced helps you know what has been around for a long time and probably supported by all browsers, and what is new and may not work everywhere. HTML is pretty stable, but it is still good to check a website like MDN or canIUse to make sure.
 
@@ -1597,7 +1651,7 @@ The header contains a paragraph with a span, and a navigation containing multipl
 The main contains multiple sections that contain either an unordered list (ul) or a table. Main also contains an aside for content that does not fit the content flow of the sections.
 
 The footer has a content division with a single span.
-
+```html
 <body>
   <p>Body</p>
   <header>
@@ -1642,6 +1696,7 @@ The footer has a content division with a single span.
     <div>Footer - <span>Span</span></div>
   </footer>
 </body>
+```
 If we rendered this HTML, and added just a bit of styling, so we can see how they related to each other, we would see the following.
 
 HTML structure
@@ -1650,16 +1705,16 @@ Properly representing the page structure using the elements is important not onl
 
 Block and inline
 There is a distinction between structure elements that are block vs inline. A block element is meant to be a distinct block in the flow of the content structure. An inline element is meant to be inline with the content flow of a block element. In other words, inline elements do not disrupt the flow of a block element's content. For example, the block element div (division) could have an inline element b in order to bring attention to a portion of its sub-text. Likewise a p (paragraph) element could have a span to mark the paragraph's sub-text as a person's name.
-
+```html
 <div>He said <b>don't</b> cross the beams.</div>
 
 <p>Authors such as <span>ee cummings</span> often used unconventional structure.</p>
-
+```
 ## HTML input elements
 📖 Deeper dive reading: MDN Input element
 
 From the very early days of HTML it contained elements for accepting the input of user data. These elements include the following:
-
+```html
 Element	Meaning	Example
 form	Input container and submission	<form action="form.html" method="post">
 fieldset	Labeled input grouping	<fieldset> ... </fieldset>
@@ -1671,11 +1726,12 @@ textarea	Multiline text input	<textarea></textarea>
 label	Individual input label	<label for="range">Range: </label>
 output	Output of input	<output for="range">0</output>
 meter	Display value with a known range	<meter min="0" max="100" value="50"></meter>
+```
 Form element
 The main purpose of the form element is to submit the values of the inputs it contains. Before JavaScript was introduced the form container element was essential because it was the only way for the browser to send the input data to a web server as part of a request to process the input and generate a new web page displaying the result of the input. With JavaScript we have much more control over input data and what is done with it. For example, in a single page application the JavaScript will dynamically rebuild the HTML elements to reflect the results of the user interaction. With this ability the data may not even be sent to the server. This greatly reduces the necessity of the form element, but it is often still used simply as a container. Just remember that you are not required to have a form element to use input elements.
 
 Here is an example of a simple form that submits the value of a textarea element.
-
+```html
 <form action="submission.html" method="post">
   <label for="ta">TextArea: </label>
   <textarea id="ta" name="ta-id">
@@ -1683,6 +1739,7 @@ Some text
   </textarea>
   <button type="submit">Submit</button>
 </form>
+```
 Pressing the submit button sends the following data to the web server. The browser generates the data by combining the textarea's name attribute with the current value of the textarea.
 
 ta-id=Some+text
@@ -1707,8 +1764,9 @@ color	Color
 file	Local file
 submit	button to trigger form submission
 In order to create an input you specify the desired type attribute along with any other attribute associated with that specific input. Here is an example of a checked radio button and its associated label.
-
+```html
 <label for="checkbox1">Check me</label> <input type="checkbox" name="varCheckbox" value="checkbox1" checked />
+```
 Most input elements share some common attributes. These include the following.
 
 Attribute	Meaning
@@ -1737,26 +1795,29 @@ A relative path references a file that is served from the same location as the H
 images/photo.jpg
 Image
 To include an image in your content you use the img element and specify the src attribute with the URL to the source image. In order to support accessibility, you should also include an alt attribute that describes the image. A full img element would look like the following.
-
+```html
 <img alt="mountain landscape" src="https://images.pexels.com/photos/164170/pexels-photo-164170.jpeg" />
+```
 mountain landscape
 
 Audio
 To include an audio file in your content you use the audio element and specify the src attribute with the URL to the source audio file. You can include the controls attribute if you want the user to be able to control the audio playback. If you do not display the controls then there is no visual representation of the audio in the rendered page. The autoplay attribute starts the audio playing as soon as the audio file is loaded, and the loop attribute keeps it playing over and over.
 
 ⚠ Note that automatically playing audio is strongly discouraged unless you provide a way for the user to opt-in to that behavior.
-
+```html
 <audio controls src="testAudio.mp3"></audio>
+```
 Html Audio
 
 Video
 To include a video in your content you use the video element and specify the src attribute with the URL to the source video. Like the audio element you can include the controls or autoplay attributes.
 
 ⚠ Note that you may need to include the crossorigin="anonymous" attribute if you are requesting files from a different domain than the one serving your content.
-
+```html
 <video controls width="300" crossorigin="anonymous">
   <source src="https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" />
 </video>
+```
 HTML video
 
 Internal media
@@ -1764,10 +1825,11 @@ The internal media elements svg and canvas allow you to actually create images d
 
 Scalable Vector Graphics (SVG)
 SVG is an extremely powerful and widely supported way to render graphics inline in your HTML. An example SVG graphic that draws a black border and a red circle looks like this:
-
+```html
 <svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg" stroke="red" fill="red" style="border: 1px solid #000000">
   <circle cx="150" cy="100" r="50" />
 </svg>
+```
 SVG demo
 
 When combined with JavaScript and CSS you can produce some amazing visualizations. Checkout this CodePen for an example.
@@ -1776,7 +1838,7 @@ Consult the MDN documentation if you are interested in learning more about SVG.
 
 Canvas
 The canvas element was introduced to HTML in order to facilitate 2D drawing and animation. The HTML for the canvas element is fairly simple, but actually drawing on the canvas requires JavaScript support. Here again, is our simple red dot example.
-
+```html
 <canvas id="canvasDemo" width="300" height="200" style="border: 1px solid #000000"></canvas>
 <script>
   const ctx = document.getElementById('canvasDemo').getContext('2d');
@@ -1787,6 +1849,7 @@ The canvas element was introduced to HTML in order to facilitate 2D drawing and 
   ctx.fill();
   ctx.stroke();
 </script>
+```
 If you would like to see some examples of complex canvas renderings check out these examples on CodePen.
 
 Neon Hexagon
