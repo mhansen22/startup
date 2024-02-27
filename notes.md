@@ -202,13 +202,19 @@ Adjusts layout based on viewport dimensions and orientation changes.
 
 1. Global Scope: Variables visible to all code.
 
+```python
+
 var globalVar = 'Global'; // Global scope
 
 function exampleFunction() {
   console.log(globalVar); // Accessible
 }
 
+```
+
 2. Module Scope: Variables visible to all code running in a module.
+
+```python
 
 // In a module file
 const moduleVar = 'Module'; // Module scope
@@ -220,27 +226,40 @@ function exampleFunction() {
   console.log(functionVar); // Accessible
 }
 
+```
+
 3. Block Scope: Variables visible within a block of code delimited by curly braces.
+
+```python
 
 if (true) {
   let blockVar = 'Block'; // Block scope
   console.log(blockVar); // Accessible
 }
-
+```
 this:
 
 1. Global this:
 
+```python
+
 console.log(this); // Refers to globalThis object
 
+```
+
 2. Function this:
+
+```python
 
 function exampleFunction() {
   console.log(this); // Refers to owning object or globalThis
 }
 exampleFunction(); // Global context
+```
 
 3. Object this:
+
+```python
 
 const obj = {
   prop: 'Object',
@@ -250,9 +269,13 @@ const obj = {
 };
 obj.method(); // Object context
 
+```
+
 Closure:
 
 1. Functions retain access to variables from their creation scope, even when executed outside that scope.
+
+```python
 
 function outerFunction() {
   const outerVar = 'Outer';
@@ -267,7 +290,11 @@ function outerFunction() {
 const closure = outerFunction();
 closure(); // Prints 'Outer'
 
+```
+
 2. Arrow functions inherit this from their lexical enclosing scope.
+
+```python
 
 const obj = {
   prop: 'Object',
@@ -280,15 +307,24 @@ const obj = {
 };
 obj.method(); // Prints 'Object'
 
+```
+
 
 # Test Notes:
 
 ## Quiz:
 
-1. You can use this CSS to load fonts from Google: @import url('https://fonts.googleleapis.com/css?family=Quicksand');
+1. You can use this CSS to load fonts from Google: 
+
+```python
+@import url('https://fonts.googleleapis.com/css?family=Quicksand');
+```
+
 Answer: TRUE!
 
 2. How will the "hello world" text be orientated? 
+
+```python
 
 <html>
 <head>
@@ -309,25 +345,36 @@ Answer: TRUE!
   </div>
 </body>
 </html>
+```
 
 Answer: Two lines, with the first line saying World and the second saying Hello
 
 3. The CSS Property Padding: 
 
+```python
+
 p {
   padding: 1em;
 }
+```
 
 Answer: Puts space around the content of selected elements
 
 4. Executing the following output:
 
+
+```python
 const f = y => ++y;
 console.log(f(3))
+```
 
 Answer: 4
 
-5. In HTML, what does <div> do?
+5. In HTML, what does 
+```python 
+<div> 
+``` 
+do?
 
 Answer: Creates a division element
 
@@ -337,17 +384,23 @@ Answer: margin, border, padding, content
 
 7. What does the following code output?
 
+```python
+
 let a = ['cow', 'rat', 'fish'];
 let b = a.filter(v =› v.match (/A|f/i)); 
 console.log(b);
+```
 
 Answer: ['rat', 'fish']
 
 8. What does the following code output? 
 
+```python
+
 let a = ['cow', 'rat','fish'];
 let b = a.reduce((a,v) => [a,v]• join(':'));
 console.log(b);
+```
 
 Answer: cow:rat:fish
 
