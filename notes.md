@@ -1313,7 +1313,7 @@ To install the Live Server extension, open up VS Code and follow these three ste
 
 LiveServer install
 
-Congratulations! You have joined the 38 million other users already enjoying this extension. You can test it by opening VS Code, creating a new file named index.html and pasting <h1>hello<h1> into the file. Then save the file and press the Go Live button. This will launch your browser and display the rendered index.html file. If you make changes to your file and save it, the browser will automatically be updated to display your changes.
+Congratulations! You have joined the 38 million other users already enjoying this extension. You can test it by opening VS Code, creating a new file named index.html and pasting hello into the file. Then save the file and press the Go Live button. This will launch your browser and display the rendered index.html file. If you make changes to your file and save it, the browser will automatically be updated to display your changes.
 
 GitLens
 The basic support that VS Code offers for working with Git is sufficient for most tasks, but if you really want to unleash the power of git, consider installing the GitLens extension. It makes reviewing the commit history, stashing, merging, and comparing so much easier. With over 25 million users, you might enjoy joining the party.
