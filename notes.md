@@ -429,7 +429,8 @@ Answer: Adds a mouseover event listener to a p element
 
 11. What is the HTMl tag for an unordered list?
 
-Answer: ```ptyhon
+Answer: 
+```python
 <ul>
 ```
 
@@ -473,14 +474,18 @@ Answer: b, Sets the child text for the an element
 
 16. Which HTML will create a valid hyperlink?
 
+```python
+
 a. <a src='https://c.com'>x</a>
 b. <link src='https://c.com'>x</link>
 c. <a href='https://c.com'>x</a>
 d. <link href='https://c.com'>x</link>
 
 Answer: c, <a href='https://c.com'>x</a>
+```
 
 17. Using CSS, how would you turn only the BYU text blue?
+```python
 
 <div>other</div>
 <div class="header">BYU</div>
@@ -491,6 +496,7 @@ c. div#header { color: blue; }
 d. header { color: blue; }
 
 Answer: b, div.header { color: blue; }
+```
 
 18. Which of the following is valid JSON?
 
@@ -530,6 +536,8 @@ Answer: b, CNAME
 
 22. What will the following output?
 
+```python
+
 const p = new Promisel(resolve, reject) → {
   setTimeout (() → {
     console.log('taco');
@@ -545,6 +553,8 @@ p
 
 console.log('fries');
 
+```
+
 a. taco burger shake salad noodles fries
 b. burger fries taco shake noodles
 c. burger fries taco shake salad noodles
@@ -553,6 +563,7 @@ d. taco burger shake salad noodles salad fries
 Answer: b, burger fries taco shake noodles
 
 23. What will the following output?
+```python
 
 const a = async function() {
   return new Promise((resolve, reject) → {
@@ -567,6 +578,7 @@ try {
 } catch(e) {
   console.log('C');
 }
+```
 
 a. A D B C
 b. A D B
