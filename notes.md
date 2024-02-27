@@ -406,23 +406,32 @@ Answer: cow:rat:fish
 
 9. What does the following code output? 
 
+```python
+
 let a = [1, 2, 3];
 let e = a.map(number => {
   return ('a' + number)
 });
 console.log(e);
 
+```
+
 Answer: ['a1', 'a2', 'a3']
 
 10. What does the following code do?
 
+```python
+
 document.querySelector('p').addEventListener('mouseover', console.log);
+```
 
 Answer: Adds a mouseover event listener to a p element
 
 11. What is the HTMl tag for an unordered list?
 
-Answer: <ul>
+Answer: ```ptyhon
+<ul>
+```
 
 12. Which of the following is NOT a valid JavaScript function?
 
@@ -435,12 +444,14 @@ Answer: a, function f(x) = {}
 
 13. Which of the following is NOT a valid way to include JavaScript in HTML?
 
+```python
 a. <script>1+1</script>
 b. <script src='main.js' />
 c. <div onclick='1+1' />
 d. <javascript>1+1</javascript>
 
 Answer: d, <javascript>1+1</javascript>
+```
 
 14. Which of the following is a valid JavaScript object?
 
