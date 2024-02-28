@@ -137,6 +137,41 @@
           <br />
           <a href="https://github.com/mhansen22/startup">GitHub</a>
         </footer>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const form = document.getElementById("movieSelectorForm");
+                form.addEventListener("submit", function (event) {
+                    event.preventDefault();
+                    if (validateForm()) {
+                       
+                        form.submit();
+                    } else {
+                    
+                        alert("Please answer all questions before proceeding.");
+                    }
+                });
+    
+                function validateForm() {
+                   
+                    const questions = document.querySelectorAll(".question");
+                    for (let i = 0; i < questions.length; i++) {
+                        const inputs = questions[i].querySelectorAll("input[type='radio']");
+                        let answered = false;
+                        for (let j = 0; j < inputs.length; j++) {
+                            if (inputs[j].checked) {
+                                answered = true;
+                                break;
+                            }
+                        }
+                        if (!answered) {
+                            return false; 
+                        }
+                    }
+                    return true; 
+                }
+            });
+        </script>
     
 </body>
 </html>
