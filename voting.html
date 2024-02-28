@@ -69,6 +69,30 @@
           <br />
           <a href="https://github.com/mhansen22/startup">GitHub</a>
         </footer>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+               
+                fetch('')
+                    .then(response => response.json())
+                    .then(data => {
+                        const movies = data.Search;
+                        const tbody = document.querySelector('#moviesTable tbody');
+                        movies.forEach(movie => {
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${movie.Title}</td>
+                                <td>${movie.Genre}</td>
+                                <td>${movie.Year}</td>
+                                <td>${movie.Director}</td>
+                                <td><input type="radio" name="vote" value="${movie.imdbID}"></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    })
+                    .catch(error => console.log(error));
+            });
+        </script>
     
 </body>
 </html>
