@@ -63,41 +63,33 @@
 
 
 
-        function handleLogin(event) {
-          event.preventDefault();
+          function handleLogin(event) {
+            event.preventDefault();
 
-          const username = document.getElementById("Username").value;
-          const password = document.getElementById("password").value;
+            const username = document.getElementById("Username").value;
+            const password = document.getElementById("password").value;
 
-          if (username.trim() === "" || password.trim() === "") {
-              alert("Please enter both username and password.");
-              return;
-          }
+            if (username.trim() === "" || password.trim() === "") {
+                alert("Please enter both username and password.");
+                return;
+            }
 
-          window.location.href = `user.html?username=${username}`;
+            
+            window.location.href = `user.html?username=${username}`;
         }
 
         document.getElementById("loginForm").addEventListener("submit", handleLogin);
 
         document.getElementById("createAccountBtn").addEventListener("click", function () {
-          alert("Create Account button clicked!");
+            alert("Create Account button clicked!");
         });
 
-
-
-       
-        const adminCode = "code_here";
-
-        function joinSession() {
-            const adminCodeInput = document.getElementById("adminCodeInput").value.trim();
-            const statusMessage = document.getElementById("statusMessage");
-
-            if (adminCodeInput === adminCode) {
-                statusMessage.textContent = "Successfully joined the session!";
-          
-            } else {
-                statusMessage.textContent = "Invalid admin code. Please try again.";
-            }
+        
+        const usernameSpan = document.querySelector(".text-reset");
+        const urlParams = new URLSearchParams(window.location.search);
+        const usernameParam = urlParams.get('username');
+        if (usernameParam) {
+            usernameSpan.textContent = usernameParam;
         }
       </script>
     
