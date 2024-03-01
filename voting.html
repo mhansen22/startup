@@ -12,7 +12,7 @@
           <h1>MovieSelector<sup>&reg;</sup></h1>
           <div>
             <a class="navbar-brand" href="index.html">Home</a>
-            <span class="Username">Username</span>
+            <span class="usernameDisplay"></span>
           </div>
         </div>
       </header>
@@ -71,6 +71,14 @@
         </footer>
 
         <script>
+          const username = localStorage.getItem("Username");
+          const usernameDisplay = document.querySelector(".usernameDisplay");
+          if (usernameDisplay) {
+              usernameDisplay.textContent = username;
+          }
+
+
+
             document.addEventListener("DOMContentLoaded", function () {
                
                 fetch('')

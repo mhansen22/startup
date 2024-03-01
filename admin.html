@@ -14,7 +14,7 @@
       <h1>MovieSelector<sup>&reg;</sup></h1>
       <div>
         <a class="navbar-brand" href="index.html">Home</a>
-        <span class="Username">Username</span>
+        <span class="usernameDisplay"></span>
       </div>
     </div>
   </header>
@@ -41,6 +41,14 @@
           <br />
           <a href="https://github.com/mhansen22/startup">GitHub</a>
         </footer>
+
+        <script>
+          const username = localStorage.getItem("Username");
+          const usernameDisplay = document.querySelector(".usernameDisplay");
+          if (usernameDisplay) {
+              usernameDisplay.textContent = username;
+          }
+      </script>
     
 </body>
 </html>
