@@ -47,7 +47,6 @@
 
 
         <script>
-
           function login() {
             const nameEl = document.querySelector("#Username");
             localStorage.setItem("Username", nameEl.value);
@@ -59,59 +58,6 @@
             localStorage.setItem("Username", nameEl.value);
             window.location.href = "user.html";
           }
-
-          
-          // function handleLogin(event) {
-          //     event.preventDefault();
-  
-          //     const username = document.getElementById("Username").value;
-          //     const password = document.getElementById("password").value;
-  
-          //     if (username.trim() === "" || password.trim() === "") {
-          //         alert("Please enter both username and password.");
-          //         return;
-          //     }
-  
-          //     window.location.href = "user.html";
-          // }
-  
-          // document.getElementById("loginForm").addEventListener("submit", handleLogin);
-  
-          // document.getElementById("createAccountBtn").addEventListener("click", function() {
-          //     alert("Create Account button clicked!");
-          // });
-
-
-
-
-        //   function handleLogin(event) {
-        //     event.preventDefault();
-
-        //     const username = document.getElementById("Username").value;
-        //     const password = document.getElementById("password").value;
-
-        //     if (username.trim() === "" || password.trim() === "") {
-        //         alert("Please enter both username and password.");
-        //         return;
-        //     }
-
-            
-        //     window.location.href = `user.html?username=${username}`;
-        // }
-
-        // document.getElementById("loginForm").addEventListener("submit", handleLogin);
-
-        // document.getElementById("createAccountBtn").addEventListener("click", function () {
-        //     alert("Create Account button clicked!");
-        // });
-
-        
-        // const usernameSpan = document.querySelector(".text-reset");
-        // const urlParams = new URLSearchParams(window.location.search);
-        // const usernameParam = urlParams.get('username');
-        // if (usernameParam) {
-        //     usernameSpan.textContent = usernameParam;
-        // }
       </script>
     
 </body>
