@@ -11,4 +11,10 @@ function generateRandomCode(length) {
 }
 
 
-adminCodePlaceholder.textContent = generateRandomCode(8);
+//adminCodePlaceholder.textContent = generateRandomCode(8);
+
+//generate code
+const adminCode = generateRandomCode(8);
+adminCodePlaceholder.textContent = adminCode;
+//store in local storage
+localStorage.setItem("adminCode", adminCode);
