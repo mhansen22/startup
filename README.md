@@ -70,10 +70,10 @@ I styled my application using CSS -
 
 With JavaScript I implemented the application to work for a single user. I also added placeholders for future technology.
 
-- [x] - done - Login - When you press "Login"/"Create Account" it takes the user to the next page (user page). It also saves the username to local storage and makes the username show up on every page in navbar.
-- [x] - done - Database - Displays movie winner and runner-up, as well as the number of votes each got up on result page (last page). Currently this is stored and retrieved from local storage, but it will be replaced with the database data later. Also movies in the voting page are stored in local storage and later be replaced by Database data.
-- [x] - done - WebSocket - Right now I set a temporary array of objects as the movies and votes, which is displayed in the results page. This will be replaced with WebSocket message later. The movie winner and votes changes as users submit their votes.
-- [x] - done - Application Logic - The access code for the admin is randomly generated using JavaSript. Also, it is stored in local storage. There is JavaScript to check to make sure the adminCode and accessCode are the same. (will store and check in DB later too)
+- [x] - done - Login - When you press "Login"/"Create Account" it takes the user to the next page (user page). It also saves the username to local storage and makes the username show up on every page in navbar. (Password is saved in variable, it will be hashed sent to the server for authentication later)
+- [x] - done - Database - Displays movie winner and runner-up, as well as the number of votes each got up on result page (last page). Currently this is stored and retrieved from local storage, but it will be replaced with the database data later. Also the movies in the voting page are stored in local storage and later be replaced by Database data.
+- [x] - done - WebSocket - Right now I set a temporary array of objects as the movies and votes, which is displayed in the results page. This will be replaced with WebSocket message later. The movie winner and votes changes as users submit their votes with a function like updateUI(votingData) once I implement websocket. (It's set up as a placeholder for now)
+- [x] - done - Application Logic - The access code for the admin is randomly generated using JavaSript. Also, it is stored in local storage. There is JavaScript to check to make sure the adminCode and accessCode are the same. (will store and check in DB later too).
 
 ### Service deliverable
 
