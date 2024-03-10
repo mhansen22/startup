@@ -1,0 +1,23 @@
+{
+    "name": "movie-selector-service",
+    "version": "1.0.0",
+    "description": "A service to select and vote on movies",
+    "main": "index.js",
+    "scripts": {
+        "start": "node index.js",
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mhansen22/movie-selector-service.git"
+    },
+    "author": "",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/mhansen22/movie-selector-service/issues"
+    },
+    "homepage": "https://github.com/mhansen22/movie-selector-service#readme",
+    "dependencies": {
+        "express": "^4.18.2"
+    }
+}
