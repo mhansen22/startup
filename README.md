@@ -77,6 +77,16 @@ With JavaScript I implemented the application to work for a single user. I also 
 
 ### Service deliverable
 
+For this deliverable:
+
+Backend web service support and interaction
+40% - Create an HTTP service using Node.js and Express
+10% - Frontend served up using Express static middleware
+10% - Your frontend calls third party service endpoints
+20% - Your backend provides service endpoints
+20% - Your frontend calls your service endpoints
+
+
 ### DB/Login deliverable
 
 ### WebSocket deliverable
