@@ -11,6 +11,26 @@
       "cors": "^2.8.5",
       "body-parser": "^1.19.0",
       "socket.io": "^4.0.0"
-    }
+    },
+    "services": [
+      {
+        "name": "Fetch Movies",
+        "method": "GET",
+        "path": "/api/movies",
+        "description": "Retrieves the list of movies based on the admin's selections"
+      },
+      {
+        "name": "Submit Vote",
+        "method": "POST",
+        "path": "/api/vote",
+        "description": "Submits a vote for a specific movie"
+      },
+      {
+        "name": "Get Results",
+        "method": "GET",
+        "path": "/api/results",
+        "description": "Retrieves the voting results"
+      }
+    ]
   }
   
