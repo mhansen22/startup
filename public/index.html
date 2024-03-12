@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="main.css" />
+    <title>Movies Selector</title>
+</head>
+<body>
+        <header>
+          <h1>MovieSelector<sup>&reg;</sup></h1>
+          <img src="clapperboard-311792_1280.png" alt="Movie Clapperboard" style="width: 175px; height: 175px;">
+          <br>
+        </header>
+    
+        <main>
+          <h2>Ready to Start Voting?</h2>
+          <p>Login to Start!</p>
+          <form id="loginForm" method="get" action="user.html">
+
+            <label for="Username">Username</label>
+            <input type="text" id="Username" placeholder="Username" required/>
+
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Password" required />
+
+            <div class="buttons">
+              <button type="submit" onclick="login()">Login</button>
+              <button type="submit" onclick="createaccount()">Create Account</button>
+
+              <!-- from simon login formaction="user.html">-->
+              <!-- <div>
+                <input type="text" id="name" placeholder="Your name here" />
+                <button class="btn btn-primary" onclick="login()">Login</button>
+              </div> -->
+
+            </div>
+          </form>
+        </main>
+    
+        <footer>
+          <hr />
+          <span class="text-reset">Mayme Hansen</span>
+          <br />
+          <a href="https://github.com/mhansen22/startup">GitHub</a>
+        </footer>
+
+
+        <script>
+          function login() {
+            const nameEl = document.querySelector("#Username");
+            localStorage.setItem("Username", nameEl.value);
+            const password = document.querySelector("#password").value;
+            window.location.href = "user.html";
+          }
+
+          function createaccount() {
+            const nameEl = document.querySelector("#Username");
+            localStorage.setItem("Username", nameEl.value);
+            const password = document.querySelector("#password").value;
+            window.location.href = "user.html";
+          }
+      </script>
+    
+</body>
+</html>

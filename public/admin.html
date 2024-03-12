@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="admin.css" />
+    <script src="admin.js" defer></script>
+    <title>Movies Selector</title>
+</head>
+<body>
+
+  <header>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h1>MovieSelector<sup>&reg;</sup></h1>
+      <div>
+        <a class="navbar-brand" href="index.html">Home</a>
+        <span class="usernameDisplay"></span>
+      </div>
+    </div>
+  </header>
+    
+        <main>
+
+          <h2>Your admin code for this session: </h2>
+          <break></break>
+          <span>
+          <p id="adminCodePlaceholder" style="padding-top: 10px;">ABC123XYZ (randomized using javascript)</p>
+        </span>
+          <p>Share it with guests to start voting!</p>
+  
+          <div>
+          <form method="get" action="voting.html">
+              <button type="submit">Next</button>
+          </form>
+        </div>
+        </main>
+    
+        <footer>
+          <hr />
+          <span class="text-reset">Mayme Hansen</span>
+          <br />
+          <a href="https://github.com/mhansen22/startup">GitHub</a>
+        </footer>
+
+        <script>
+          const username = localStorage.getItem("Username");
+          const usernameDisplay = document.querySelector(".usernameDisplay");
+          if (usernameDisplay) {
+              usernameDisplay.textContent = username;
+          }
+      </script>
+    
+</body>
+</html>

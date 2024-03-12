@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="user.css" />
+    <title>Movies Selector</title>
+</head>
+<body>
+  <header>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <h1>MovieSelector<sup>&reg;</sup></h1>
+      <div>
+        <a class="navbar-brand" href="index.html">Home</a>
+        <span class="usernameDisplay"></span>
+      </div>
+    </div>
+  </header>
+    
+        <main>
+            <h2>Select Guest or Admin:</h2>
+            <form>
+                <input type="submit" value="Guest" formaction="guest.html">
+                <input type="submit" value="Admin" formaction="questions.html">
+            </form>
+        </main>
+    
+        <footer>
+          <hr />
+          <span class="text-reset">Mayme Hansen</span>
+          <br />
+          <a href="https://github.com/mhansen22/startup">GitHub</a>
+        </footer>
+
+        <script>
+          const username = localStorage.getItem("Username");
+          const usernameDisplay = document.querySelector(".usernameDisplay");
+          if (usernameDisplay) {
+              usernameDisplay.textContent = username;
+          }
+
+          // document.addEventListener("DOMContentLoaded", function() {
+          //   const urlParams = new URLSearchParams(window.location.search);
+          //   const username = urlParams.get('username');
+          //   document.getElementById("Username").innerText = username;
+          //   alert("Username from URL: " + username);
+          // });
+        </script>
+    
+</body>
+</html>

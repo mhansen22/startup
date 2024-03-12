@@ -1,0 +1,123 @@
+body,
+h1,
+h2,
+p,
+label,
+input,
+button {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    background-color: #333;
+    color: #fff;
+    padding: 20px;
+}
+
+header h1 {
+    margin: 0;
+}
+
+header sup {
+    font-size: 0.6em;
+}
+
+.Username {
+    color: #fff;
+    font-weight: bold;
+}
+
+a {
+    color: #a4d4ff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #6fa8dc;
+}
+
+main {
+    flex: 1;
+    padding: 20px;
+}
+
+.results-container {
+    text-align: center;
+}
+
+.popcorn-container {
+    margin-top: 20px;
+}
+
+.popcorn-container img {
+    width: 120px; 
+    height: auto; 
+}
+
+.winner-container,
+.runnerup-container {
+    display: inline-block;
+    width: 45%;
+    margin-top: 10px;
+}
+
+.winner-container {
+    text-align: center;
+}
+
+.runnerup-container {
+    text-align: center;
+}
+
+footer {
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    text-align: center;
+    margin-top: auto;
+}
+
+footer hr {
+    border-color: #fff;
+    margin: 10px auto;
+    width: 50%;
+}
+
+button {
+    padding: 10px 20px;
+    font-size: 1em;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+button:focus {
+    outline: none;
+}
+
+main div {
+    padding: 20px;
+}
+
+@media (max-width: 768px) {
+    footer {
+        display: none;
+    }
+}
+

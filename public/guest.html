@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies Selector</title>
+    <link rel="stylesheet" href="guest.css" />
+</head>
+<body>
+    <header>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h1>MovieSelector<sup>&reg;</sup></h1>
+          <div>
+            <a class="navbar-brand" href="index.html">Home</a>
+            <span class="usernameDisplay"></span>
+          </div>
+        </div>
+      </header>
+    
+        <main>
+        <section>
+            <h2>*Enter Access Code Shared By Admin*</h2>
+            <form method="get" action="voting.html">
+                <label for="accessCode">Access Code:</label>
+                <input type="text" id="accessCode" name="accessCode" required>
+
+                <button type="submit">Submit</button>
+            </form>
+            <p id="error" style="color: red; display: none;">The access code you entered is incorrect. Please try again.</p>
+        </section>
+        
+        </main>
+    
+        <footer>
+          <hr />
+          <span class="text-reset">Mayme Hansen</span>
+          <br />
+          <a href="https://github.com/mhansen22/startup">GitHub</a>
+        </footer>
+
+        <script>
+          const username = localStorage.getItem("Username");
+          const usernameDisplay = document.querySelector(".usernameDisplay");
+          if (usernameDisplay) {
+              usernameDisplay.textContent = username;
+          }
+
+
+          // document.getElementById("accessCodeForm").addEventListener("submit", function(event) {
+          //     event.preventDefault();
+          //     const adminCode = localStorage.getItem("adminCode");
+          //     const enteredCode = document.getElementById("accessCode").value;
+          //     if (enteredCode === adminCode) {
+                
+          //         window.location.href = "voting.html";
+          //     } else {
+                  
+          //         document.getElementById("error").style.display = "block";
+          //     }
+          // });
+
+          document.getElementById("accessCodeForm").addEventListener("submit", function(event) {
+              event.preventDefault();
+              const adminCode = localStorage.getItem("adminCode");
+              const enteredCode = document.getElementById("accessCode").value;
+              if (enteredCode === adminCode) {
+                  window.location.href = "voting.html";
+              } else {
+                  document.getElementById("error").style.display = "block";
+              }
+          });
+      </script>
+    
+</body>
+</html>

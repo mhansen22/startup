@@ -1,32 +1,22 @@
 {
-    "name": "movie-selector-service",
-    "version": "1.0.0",
-    "description": "A service to select and vote on movies",
-    "main": "index.js",
-    "scripts": {
-        "start": "node index.js",
-        "dev": "nodemon index.js",
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/mhansen22/movie-selector-service.git"
-    },
-    "author": "",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/mhansen22/movie-selector-service/issues"
-    },
-    "homepage": "https://github.com/mhansen22/movie-selector-service#readme",
-    "dependencies": {
-        "express": "^4.18.2",
-        "express-session": "^1.17.2",
-        "passport": "^0.5.2",
-        "passport-local": "^1.0.0",
-        "bcryptjs": "^2.4.3", 
-        "nodemailer": "^6.7.2"
-    },
-    "devDependencies": {
-        "nodemon": "^2.0.15"
-    }
+  "name": "movie-selector-server",
+  "version": "1.0.0",
+  "description": "Movie Selector with service endpoints",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mhansen22/startup.git"
+  },
+  "author": "mhansen22",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mhansen22/startup/issues"
+  },
+  "homepage": "https://github.com/mhansen22/startup#readme",
+  "dependencies": {
+    "express": "^4.18.3"
+  }
 }

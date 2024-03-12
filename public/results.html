@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="results.css" />
+    <title>Movies Selector</title>
+</head>
+<body>
+<header>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>MovieSelector<sup>&reg;</sup></h1>
+        <div>
+            <a class="navbar-brand" href="index.html">Home</a>
+            <span class="usernameDisplay"></span>
+        </div>
+    </div>
+</header>
+
+<main>
+    <div class="results-container">
+        <h1>Results!</h1>
+        <div class="popcorn-container">
+            <img src="popcorn-155602_1280.png" alt="Movie Popcorn">
+        </div>
+        <div class="winner-container">
+            <span><h2>Winner:</h2><p id="winnerVotes">Recieved: 4 votes (Websocket Data)</p></span>
+            <p><span id="movieWinner">Placeholder Movie Winner (Database Data)</span></p>
+        </div>
+        <div class="runnerup-container">
+            <span><h2>Runner Up:</h2><p id="runnerupVotes">Recieved: 2 votes (Websocket Data)</p></span>
+            <p><span id="movieRunnerup">Placeholder Movie Runner Up (Database Data)</span></p>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <hr />
+    <span class="text-reset">Mayme Hansen</span>
+    <br />
+    <a href="https://github.com/mhansen22/startup">GitHub</a>
+</footer>
+
+<script>
+    const username = localStorage.getItem("Username");
+    const usernameDisplay = document.querySelector(".usernameDisplay");
+    if (usernameDisplay) {
+        usernameDisplay.textContent = username;
+    }
+
+    //example data :)
+    const votingData = [
+        { movie: "Movie 1", votes: 4 },
+        { movie: "Movie 2", votes: 2 },
+        { movie: "Movie 3", votes: 1 },
+    ];
+
+    //HERE WEBSOCKET DATA WILL BE IMPLEMENTED WITH function updateUI(votingData) {
+
+    //sort by votes
+    votingData.sort((a, b) => b.votes - a.votes);
+
+    //update winner and runnerup data
+    const movieWinner = document.getElementById("movieWinner");
+    const movieRunnerup = document.getElementById("movieRunnerup");
+    const winnerVotes = document.getElementById("winnerVotes");
+    const runnerupVotes = document.getElementById("runnerupVotes");
+
+    if (votingData.length > 0) {
+        movieWinner.textContent = votingData[0].movie;
+        // winnerVotes.textContent = votingData[0].votes;
+        winnerVotes.textContent = `Received: ${votingData[0].votes} votes`;
+    }
+
+    if (votingData.length > 1) {
+        movieRunnerup.textContent = votingData[1].movie;
+        // runnerupVotes.textContent = votingData[1].votes;
+        runnerupVotes.textContent = `Received: ${votingData[1].votes} votes`;
+    }
+</script>
+
+</body>
+</html>
