@@ -77,15 +77,13 @@ With JavaScript I implemented the application to work for a single user. I also 
 
 ### Service deliverable
 
-For this deliverable:
+For this deliverable I did Backend web service support and interaction (to handle voting data):
 
-Backend web service support and interaction
-40% - Create an HTTP service using Node.js and Express
-10% - Frontend served up using Express static middleware
-10% - Your frontend calls third party service endpoints
-20% - Your backend provides service endpoints
-20% - Your frontend calls your service endpoints
-
+- [x] - done - Node.js/Express HTTP service - I created an HTTP service using Node.js and Express
+- [x] - done - Static middleware for frontend - Served the frontend using Express's express.static('public').
+- [x] - done - Calls to third party endpoints - My backend fetches movie data from the TMDB API, while frontend triggers these backend calls.
+- [x] - done - Backend service endpoints - Created a /api/movies backend endpoint to retrieve and serve movie data.
+- [x] - done - Frontend calls service endpoints - The frontend makes calls to the backend's /api/movies to get movie data, showing the interaction between frontend and backend.
 
 ### DB/Login deliverable
 
