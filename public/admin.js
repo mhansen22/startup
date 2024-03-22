@@ -18,3 +18,13 @@ const adminCode = generateRandomCode(8);
 adminCodePlaceholder.textContent = adminCode;
 //store in local storage
 localStorage.setItem("adminCode", adminCode);
+
+
+
+//from script in page
+
+const username = localStorage.getItem("Username");
+          const usernameDisplay = document.querySelector(".usernameDisplay");
+          if (usernameDisplay) {
+              usernameDisplay.textContent = username;
+          }
