@@ -6,6 +6,19 @@ const port = process.argv.length > 2 ? process.argv[2] : 4000;
 app.use(express.json());
 app.use(express.static('public'));
 
+const apiKey = '388d82aaee1185ab0a41407aad8b8a81';
+let genreMap = {};
+let movieCache = [];
+
+
+// Router for service endpoints
+// var apiRouter = express.Router();
+// app.use(`/api`, apiRouter);
+
+
+
+
+
 // let movies = [
 //   { title: "Inception", genre: "Action", year: 2010, director: "Christopher Nolan" },
 //   { title: "The Shawshank Redemption", genre: "Drama", year: 1994, director: "Frank Darabont" },
@@ -16,8 +29,8 @@ app.use(express.static('public'));
 //   { title: "Fight Club", genre: "Drama", year: 1999, director: "David Fincher" }
 // ];
 
-const apiKey = '388d82aaee1185ab0a41407aad8b8a81';
-let genreMap = {};
+
+
 
 // const fetchGenres = async () => {
 //   try {
@@ -111,6 +124,80 @@ let genreMap = {};
 //     res.status(404).send('Movie not found');
 //   }
 // });
+
+//here
+
+// const updateGenreMap = async () => {
+//   try {
+//     const response = await axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
+//     genreMap = response.data.genres.reduce((map, genre) => {
+//       map[genre.id] = genre.name;
+//       return map;
+//     }, {});
+//   } catch (error) {
+//     console.error('Error fetching genres:', error);
+//   }
+// };
+
+// const fetchMovies = async () => {
+//   try {
+//     if (movieCache.length === 0) {
+//       await updateGenreMap();  // Update genre mapping if needed
+//       const response = await axios.get(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=en-US&sort_by=popularity.desc`);
+//       const movies = response.data.results;
+
+//       movieCache = movies.map(movie => ({
+//         title: movie.title,
+//         genres: movie.genre_ids.map(id => genreMap[id] || 'Unknown'),
+//         year: movie.release_date ? movie.release_date.substring(0, 4) : 'Unknown',
+//       }));
+//     }
+//     return movieCache;
+//   } catch (error) {
+//     console.error('Error fetching movies:', error);
+//     return [];
+//   }
+// };
+
+// const shuffleArray = (array) => {
+//   for (let i = array.length - 1; i > 0; i--) {
+//     const j = Math.floor(Math.random() * (i + 1));
+//     [array[i], array[j]] = [array[j], array[i]];
+//   }
+// };
+
+
+// var apiRouter = express.Router();
+
+// apiRouter.get('/movies', async (req, res) => {
+//   try {
+//     let movies = await fetchMovies();
+//     shuffleArray(movies);
+//     let selectedMovies = movies.slice(0, 3);
+//     res.json(selectedMovies);
+//   } catch (error) {
+//     console.error('Error serving movie data:', error);
+//     res.status(500).send('Error fetching movie data');
+//   }
+// });
+
+// app.use('/api', apiRouter);
+
+// app.use((_req, res) => {
+//   res.sendFile('index.html', { root: 'public' });
+// });
+
+// app.listen(port, () => {
+//   console.log(`Listening on port ${port}`);
+// });
+
+
+//there
+
+
+
+
+//
 
 const fetchGenres = async () => {
   try {
