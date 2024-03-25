@@ -20,6 +20,20 @@ adminCodePlaceholder.textContent = adminCode;
 localStorage.setItem("adminCode", adminCode);
 
 
+fetch('/api/storeAdminCode', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ adminCode: adminCode }),
+  })
+  .then(response => response.json())
+  .then(data => console.log('Admin code stored successfully:', data))
+  .catch((error) => {
+    console.error('Error storing admin code:', error);
+  });
+
+
 
 //from script in page
 
