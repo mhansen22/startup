@@ -6,7 +6,7 @@ const port = process.argv.length > 2 ? process.argv[2] : 4000;
 app.use(express.json());
 app.use(express.static('public'));
 
-const apiKey = '388d82aaee1185ab0a41407aad8b8a81';
+const apiKey = 'apikey';
 let genreMap = {};
 let movieCache = [];
 
@@ -249,4 +249,22 @@ app.use((_req, res) => {
 
 app.listen(port, () => {
   console.log(`Listening on port ${port}`);
+});
+
+
+let storedAdminCode = '';
+
+apiRouter.post('/storeAdminCode', (req, res) => {
+  const { adminCode } = req.body;
+  storedAdminCode = adminCode;
+  res.json({ message: 'Admin code stored successfully' });
+});
+
+apiRouter.post('/authenticateAdminCode', (req, res) => {
+  const { adminCode } = req.body;
+  if (adminCode === storedAdminCode) {
+    res.json({ authenticated: true });
+  } else {
+    res.status(401).json({ authenticated: false, message: 'Invalid admin code' });
+  }
 });
