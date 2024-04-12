@@ -1,24 +1,29 @@
 const express = require('express');
-const app = express();
 const axios = require('axios');
+const app = express();
 const port = process.argv.length > 2 ? process.argv[2] : 4000;
 
 app.use(express.json());
 app.use(express.static('public'));
 
+
+//configuration for api key
 const apiKey = 'apikey';
 let genreMap = {};
 let movieCache = [];
 
-
+//middle
+app.use(express.json());
+app.use(express.static('public'));
 
 var apiRouter = express.Router();
 
-//changes here::
 
+//fetch genres from TMDB
 const fetchGenres = async () => {
   try {
-    const response = await axios.get(`https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`);
+    const url = 'https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US';
+    const response = await axios.get(url);
     response.data.genres.forEach(genre => {
       genreMap[genre.id] = genre.name;
     });
@@ -28,48 +33,39 @@ const fetchGenres = async () => {
 };
 
 
+//mix.shuffle
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
 
+//route
 apiRouter.get('/movies', async (req, res) => {
   try {
-    await fetchGenres(); //make sure genre map is populated...
-    const response = await axios.get(`https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=en-US&sort_by=popularity.desc`);
+    await fetchGenres();
+    const url = 'https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=en-US&sort_by=popularity.desc';
+    const response = await axios.get(url);
     const movies = response.data.results;
-
     let refinedMovies = movies.map(movie => ({
       title: movie.title,
       genre: movie.genre_ids.map(id => genreMap[id]).join(', '),
       year: movie.release_date.substring(0, 4),
     }));
 
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
-
     shuffleArray(refinedMovies);
-    let selectedMovies = refinedMovies.slice(0, 3);
-
-    res.json(selectedMovies);
+    res.json(movies.slice(0,3));
   } catch (error) {
     console.error('Error fetching movies:', error);
     res.status(500).send('Error fetching movie data');
   }
 });
 
-app.use('/api', apiRouter);
 
-app.use((_req, res) => {
-  res.sendFile('index.html', { root: 'public' });
-});
-
-app.listen(port, () => {
-  console.log(`Listening on port ${port}`);
-});
-
-
+//admin code
 let storedAdminCode = '';
+
 
 apiRouter.post('/storeAdminCode', (req, res) => {
   const { adminCode } = req.body;
@@ -87,17 +83,13 @@ apiRouter.post('/authenticateAdminCode', (req, res) => {
 });
 
 
-apiRouter.post('/storeAdminCode', (req, res) => {
-  storedAdminCode = req.body.adminCode;  
-  //store admin code?
-  res.json({ message: 'Admin code stored successfully.' });
+
+app.use('/api', apiRouter);
+
+app.use((_req, res) => {
+  res.sendFile('index.html', { root: 'public' });
 });
 
-apiRouter.post('/validateAdminCode', (req, res) => {
-  const { enteredCode } = req.body;
-  if (enteredCode === storedAdminCode) {
-    res.json({ valid: true });
-  } else {
-    res.status(401).json({ valid: false, message: 'Invalid admin code' });
-  }
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
 });
