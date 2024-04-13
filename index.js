@@ -22,7 +22,7 @@ var apiRouter = express.Router();
 //fetch genres from TMDB
 const fetchGenres = async () => {
   try {
-    const url = 'https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US';
+    const url = `https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=en-US`;
     const response = await axios.get(url);
     response.data.genres.forEach(genre => {
       genreMap[genre.id] = genre.name;
@@ -43,9 +43,11 @@ function shuffleArray(array) {
 
 //route
 apiRouter.get('/movies', async (req, res) => {
+  const { genre, yearFrom, yearTo, minLength, maxLength, rating } = req.query;
+  
   try {
     await fetchGenres();
-    const url = 'https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=en-US&sort_by=popularity.desc';
+    const url = `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=en-US&sort_by=popularity.desc`;
     const response = await axios.get(url);
     const movies = response.data.results;
     let refinedMovies = movies.map(movie => ({
@@ -56,6 +58,9 @@ apiRouter.get('/movies', async (req, res) => {
 
     shuffleArray(refinedMovies);
     res.json(movies.slice(0,3));
+    // res.json(refinedMovies.slice(0,3));
+    req.session.movies = refinedMovies;
+    res.redirect('/admin.html');
   } catch (error) {
     console.error('Error fetching movies:', error);
     res.status(500).send('Error fetching movie data');
@@ -83,8 +88,8 @@ apiRouter.post('/authenticateAdminCode', (req, res) => {
 });
 
 
-
 app.use('/api', apiRouter);
+
 
 app.use((_req, res) => {
   res.sendFile('index.html', { root: 'public' });
