@@ -36,3 +36,21 @@ const username = localStorage.getItem("Username");
             }
             return true;
         }
+
+        document.getElementById("movieSelectorForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            const queryParams = new URLSearchParams(formData).toString();
+          
+            fetch(`/api/movies?${queryParams}`, {
+              method: 'GET'
+            })
+              .then(response => response.json())
+              .then(data => {
+                console.log('Movies:', data);
+                //here
+              })
+              .catch(error => {
+                console.error('Failed to fetch movies:', error);
+              });
+          });
