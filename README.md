@@ -93,7 +93,7 @@ For this deliverable I made functionality for the user to login/create an accoun
  - [x] - done - Stores data in MongoDB - done!
  - [x] - done - User registration - Creates a new account in the database.
  - [x] - done - existing user - Stores the votes under the same user if the user already exists.
- - [x] - nope - Use MongoDB to store credentials - Stores both user and their votes.
+ - [x] - done - Use MongoDB to store credentials - Stores both user and their votes.
  - [x] - done - Restricts functionality - You cannot vote until you have logged in. This is restricted on the frontend because you cannot access the other pages until you have logged in. This is restricted on the backend because all actions require verification of the user's session token, which is checked with active sessions in database. Unauthorized requests without session token are not allowed to vote. Also, the prexisting vote is replaced with new vote if the user is an existing user (signing in rather than creating a new account).
 
 ### WebSocket deliverable
