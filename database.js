@@ -41,15 +41,25 @@ async function createUser(email, password) {
 
 //change2:
 async function logVote(userId, movieTitle) {
-    const vote = {
-      userId: userId,
-      movieTitle: movieTitle,
-      votedAt: new Date()
-      //log time for debugging purposeds!
-    };
-    await db.collection('votes').insertOne(vote);
-    return vote;
+    const existingVote = await db.collection('votes').findOne({ userId: userId });
+    
+    if (existingVote) {
+      //to update exisitng vode if existing exists
+      await db.collection('votes').updateOne({ userId: userId }, { $set: { movieTitle: movieTitle, votedAt: new Date() } });
+      return { updated: true, movieTitle: movieTitle };
+    } else {
+      //then replace with new vote!
+      
+      const vote = {
+        userId: userId,
+        movieTitle: movieTitle,
+        votedAt: new Date()
+      };
+      await db.collection('votes').insertOne(vote);
+      return { created: true, movieTitle: movieTitle };
+    }
   }
+  
 
 
 module.exports = {
