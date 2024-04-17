@@ -9,8 +9,6 @@ const authCookieName = 'token';
 
 const port = process.argv.length > 2 ? process.argv[2] : 4000;
 
-app.use(express.json());
-app.use(express.static('public'));
 
 // JSON body parsing using built-in middleware
 app.use(express.json());
@@ -108,7 +106,7 @@ function setAuthCookie(res, authToken) {
   });
 }
 
-const apiKey = 'api_key_here';
+const apiKey = 'my_api_key';
 let genreMap = {};
 
 const fetchGenres = async () => {
@@ -122,7 +120,7 @@ const fetchGenres = async () => {
   }
 };
 
-var apiRouter = express.Router();
+// var apiRouter = express.Router();
 
 apiRouter.get('/movies', async (req, res) => {
   try {
@@ -150,6 +148,28 @@ apiRouter.get('/movies', async (req, res) => {
   } catch (error) {
     console.error('Error fetching movies:', error);
     res.status(500).send('Error fetching movie data');
+  }
+});
+
+//change made:
+secureApiRouter.post('/vote', async (req, res) => {
+  const authToken = req.cookies[authCookieName];
+  const user = await DB.getUserByToken(authToken);
+  if (!user) {
+    return res.status(401).send({ msg: 'Unauthorized' });
+  }
+
+  const movieTitle = req.body.movieTitle;
+  if (!movieTitle) {
+    return res.status(400).send({ msg: 'Movie title is required' });
+  }
+
+  try {
+    const vote = await DB.logVote(user._id, movieTitle);
+    res.send({ msg: 'Vote logged', vote: vote });
+  } catch (error) {
+    console.error('Failed to log vote:', error);
+    res.status(500).send({ msg: 'Failed to log vote' });
   }
 });
 
