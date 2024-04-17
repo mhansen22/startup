@@ -50,16 +50,27 @@ const username = localStorage.getItem("Username");
               }
             
               async submitVote() {
-                return new Promise((resolve, reject) => {
-                  const formData = new FormData(document.getElementById("votingForm"));
-                  const selectedVote = formData.get("vote");
-                  //replace with ACTUAL websocket stuff
-                  setTimeout(() => {
-                    console.log(`Vote submitted: ${selectedVote}`);
-                    resolve(selectedVote);
-                  }, 1000);
+                const formData = new FormData(document.getElementById("votingForm"));
+                const movieTitle = formData.get("vote");
+                
+                const response = await fetch('/api/vote', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ movieTitle })
                 });
+              
+                if (response.ok) {
+                  const result = await response.json();
+                  console.log(`Vote submitted: ${result.msg}`);
+                  return movieTitle;
+                } else {
+                  const error = await response.json();
+                  throw new Error(`Failed to submit vote: ${error.msg}`);
+                }
               }
+              
             }
             
             document.getElementById("votingForm").addEventListener("submit", async (event) => {
@@ -74,9 +85,9 @@ const username = localStorage.getItem("Username");
                   event.target.submit();
                 } catch (error) {
                   console.error("Error submitting vote:", error);
-                  alert("Failed to submit vote. Please try again.");
+                  alert("Failed to submit vote. Try again.");
                 }
               } else {
-                alert("Please select a top choice before proceeding.");
+                alert("Please vote before proceeding.");
               }
             });
