@@ -39,9 +39,22 @@ async function createUser(email, password) {
   return user;
 }
 
+//change2:
+async function logVote(userId, movieTitle) {
+    const vote = {
+      userId: userId,
+      movieTitle: movieTitle,
+      votedAt: new Date()
+      //log time for debugging purposeds!
+    };
+    await db.collection('votes').insertOne(vote);
+    return vote;
+  }
+
 
 module.exports = {
   getUser,
   getUserByToken,
   createUser,
+  logVote,
 };
