@@ -80,18 +80,3 @@ const username = localStorage.getItem("Username");
                 alert("Please select a top choice before proceeding.");
               }
             });
-
-
-            document.addEventListener('DOMContentLoaded', function() {
-              fetch('/api/getMoviesForVoting')  //endpoint
-                .then(response => response.json())
-                .then(data => {
-                  const moviesList = document.getElementById('moviesList');
-                  data.forEach(movie => {
-                    let movieItem = document.createElement('li');
-                    movieItem.textContent = `${movie.title} (${movie.year}) - ${movie.genre}`;
-                    moviesList.appendChild(movieItem);
-                  });
-                })
-                .catch(error => console.error('Error loading movies:', error));
-            });
