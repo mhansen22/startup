@@ -57,6 +57,16 @@ function peerProxy(httpServer) {
   }, 10000);
 }
 
-module.exports = { peerProxy };
+//change
+function broadcastTopMovie(topMovie) {
+    const message = JSON.stringify({
+        type: 'updateTopMovie',
+        movieTitle: topMovie._id,
+        count: topMovie.count
+    });
+    connections.forEach(conn => conn.ws.send(message));
+}
+
+module.exports = { peerProxy, broadcastTopMovie };
 
 

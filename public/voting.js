@@ -43,7 +43,7 @@ const username = localStorage.getItem("Username");
                 await populateMovieTable();
             });
   
-            //future webscoket
+            
             class VotingChoice {
               constructor(choiceElement) {
                 this.choiceElement = choiceElement;
@@ -72,22 +72,5 @@ const username = localStorage.getItem("Username");
               }
               
             }
-            
-            document.getElementById("votingForm").addEventListener("submit", async (event) => {
-              event.preventDefault();
-              const selectedOption = document.querySelector("input[type='radio']:checked");
-              if (selectedOption) {
-                const choice = new VotingChoice(selectedOption);
-                try {
-                  const voteResult = await choice.submitVote();
-                  console.log("Vote submitted successfully:", voteResult);
-                  alert("Vote submitted successfully!");
-                  event.target.submit();
-                } catch (error) {
-                  console.error("Error submitting vote:", error);
-                  alert("Failed to submit vote. Try again.");
-                }
-              } else {
-                alert("Please vote before proceeding.");
-              }
-            });
+          
+          

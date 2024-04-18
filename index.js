@@ -4,6 +4,9 @@ const express = require('express');
 const app = express();
 const DB = require('./database.js');
 const { peerProxy } = require('./peerProxy.js');
+const { getTopVotedMovie } = require('./database');
+
+
 // const { createServer } = require('http');
 // const { getTopVotedMovie } = require('./database');
 const axios = require('axios');
@@ -148,20 +151,22 @@ secureApiRouter.post('/vote', async (req, res) => {
   const authToken = req.cookies[authCookieName];
   const user = await DB.getUserByToken(authToken);
   if (!user) {
-    return res.status(401).send({ msg: 'Unauthorized' });
+      return res.status(401).send({ msg: 'Unauthorized' });
   }
-
   const movieTitle = req.body.movieTitle;
   if (!movieTitle) {
-    return res.status(400).send({ msg: 'Movie title is required' });
+      return res.status(400).send({ msg: 'Movie title is required' });
   }
-
   try {
-    const vote = await DB.logVote(user._id, movieTitle);
-    res.send({ msg: 'Vote logged', vote: vote });
+      const vote = await DB.logVote(user._id, movieTitle);
+      const topMovie = await getTopVotedMovie();//get top movie
+      if (topMovie) {
+          peerProxy.broadcastTopMovie(topMovie);//brodcast method used here
+      }
+      res.send({ msg: 'Vote logged', vote: vote });
   } catch (error) {
-    console.error('Failed to log vote:', error);
-    res.status(500).send({ msg: 'Failed to log vote' });
+      console.error('Failed to log vote:', error);
+      res.status(500).send({ msg: 'Failed to log vote' });
   }
 });
 
@@ -173,6 +178,7 @@ app.use((_req, res) => {
   res.sendFile('index.html', { root: 'public' });
 });
 
+//remove
 // app.listen(port, () => {
 //   console.log(`Listening on port ${port}`);
 // });

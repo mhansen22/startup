@@ -44,11 +44,9 @@ async function logVote(userId, movieTitle) {
     const existingVote = await db.collection('votes').findOne({ userId: userId });
     
     if (existingVote) {
-      //to update exisitng vode if existing exists
       await db.collection('votes').updateOne({ userId: userId }, { $set: { movieTitle: movieTitle, votedAt: new Date() } });
       return { updated: true, movieTitle: movieTitle };
     } else {
-      //then replace with new vote!
 
       const vote = {
         userId: userId,
@@ -61,20 +59,20 @@ async function logVote(userId, movieTitle) {
   }
 
 
-//does not work yet
-// async function getTopVotedMovie() {
-//     try {
-//         const result = await db.collection('votes').aggregate([
-//             { $group: { _id: "$movieTitle", count: { $sum: 1 } } },
-//             { $sort: { count: -1 } },
-//             { $limit: 1 }
-//         ]).toArray();
-//         return result[0]; // returns the movie with the highest vote count
-//     } catch (error) {
-//         console.error("Error fetching top voted movie:", error);
-//         return null; // handle error appropriately
-//     }
-// }
+//does not work yet?
+async function getTopVotedMovie() {
+    try {
+        const result = await db.collection('votes').aggregate([
+            { $group: { _id: "$movieTitle", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+            { $limit: 1 }
+        ]).toArray();
+        return result[0]; // returns the movie with the highest vote count
+    } catch (error) {
+        console.error("Error fetching top voted movie:", error);
+        return null; // handle error appropriately
+    }
+}
 
   
 
@@ -84,4 +82,5 @@ module.exports = {
   getUserByToken,
   createUser,
   logVote,
+  getTopVotedMovie,
 };
