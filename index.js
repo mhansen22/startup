@@ -3,38 +3,30 @@ const bcrypt = require('bcrypt');
 const express = require('express');
 const app = express();
 const DB = require('./database.js');
+const { peerProxy } = require('./peerProxy.js');
+// const { createServer } = require('http');
+// const { getTopVotedMovie } = require('./database');
 const axios = require('axios');
+//addded:
 
 const authCookieName = 'token';
 
-const port = process.argv.length > 2 ? process.argv[2] : 4000;
+// const { peerProxy } = require('./peerProxy.js');
 
+//port to use
+const port = process.argv.length > 2 ? process.argv[2] : 4000;
 
 // JSON body parsing using built-in middleware
 app.use(express.json());
-
 // Use the cookie parser middleware for tracking authentication tokens
 app.use(cookieParser());
-
 // Serve up the applications static content
 app.use(express.static('public'));
-
 // Trust headers that are forwarded from the proxy so we can determine IP addresses
 app.set('trust proxy', true);
-
 // Router for service endpoints
 var apiRouter = express.Router();
 app.use(`/api`, apiRouter);
-
-// let movies = [
-//   { title: "Inception", genre: "Action", year: 2010, director: "Christopher Nolan" },
-//   { title: "The Shawshank Redemption", genre: "Drama", year: 1994, director: "Frank Darabont" },
-//   { title: "The Godfather", genre: "Crime", year: 1972, director: "Francis Ford Coppola" },
-//   { title: "Pulp Fiction", genre: "Crime", year: 1994, director: "Quentin Tarantino" },
-//   { title: "The Dark Knight", genre: "Action", year: 2008, director: "Christopher Nolan" },
-//   { title: "Forrest Gump", genre: "Drama", year: 1994, director: "Robert Zemeckis" },
-//   { title: "Fight Club", genre: "Drama", year: 1999, director: "David Fincher" }
-// ];
 
 
 // CreateAuth token for a new user
@@ -106,7 +98,7 @@ function setAuthCookie(res, authToken) {
   });
 }
 
-const apiKey = 'my_api_key';
+const apiKey = '388d82aaee1185ab0a41407aad8b8a81';
 let genreMap = {};
 
 const fetchGenres = async () => {
@@ -173,12 +165,20 @@ secureApiRouter.post('/vote', async (req, res) => {
   }
 });
 
+
+
 app.use('/api', apiRouter);
 
 app.use((_req, res) => {
   res.sendFile('index.html', { root: 'public' });
 });
 
-app.listen(port, () => {
+// app.listen(port, () => {
+//   console.log(`Listening on port ${port}`);
+// });
+
+const httpService = app.listen(port, () => {
   console.log(`Listening on port ${port}`);
 });
+
+peerProxy(httpService);
