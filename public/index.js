@@ -33,7 +33,7 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
   .then(data => {
     if (data.id) {
       localStorage.setItem("Username", email);//set username, local storage
-      window.location.href = "user.html";
+      window.location.href = "voting.html";
     } else {
       alert(data.msg);//alert!!!
     }
