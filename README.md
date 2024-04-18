@@ -82,6 +82,7 @@ For this deliverable I did Backend web service support and interaction (to handl
 - [x] - done - Node.js/Express HTTP service - I created an HTTP service using Node.js and Express
 - [x] - done - Static middleware for frontend - Served the frontend using Express's express.static('public').
 - [x] - done - Calls to third party endpoints - My backend fetches movie data from the TMDB API, while frontend triggers these backend calls.
+(FIXED)
 - [x] - done - Backend service endpoints - Created a /api/movies backend endpoint to retrieve and serve movie data. Also, made an /api/vote endpoint to log user votes for movies. 
 - [x] - done - Frontend calls service endpoints - The frontend makes calls to the backend's /api/movies to get movie data, showing the interaction between frontend and backend. The frontend also handles user votes through interactions with the api/vote endpoint. I used js fetch API to send POST requests.
 
