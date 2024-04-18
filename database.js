@@ -49,7 +49,7 @@ async function logVote(userId, movieTitle) {
       return { updated: true, movieTitle: movieTitle };
     } else {
       //then replace with new vote!
-      
+
       const vote = {
         userId: userId,
         movieTitle: movieTitle,
@@ -59,6 +59,23 @@ async function logVote(userId, movieTitle) {
       return { created: true, movieTitle: movieTitle };
     }
   }
+
+
+//does not work yet
+// async function getTopVotedMovie() {
+//     try {
+//         const result = await db.collection('votes').aggregate([
+//             { $group: { _id: "$movieTitle", count: { $sum: 1 } } },
+//             { $sort: { count: -1 } },
+//             { $limit: 1 }
+//         ]).toArray();
+//         return result[0]; // returns the movie with the highest vote count
+//     } catch (error) {
+//         console.error("Error fetching top voted movie:", error);
+//         return null; // handle error appropriately
+//     }
+// }
+
   
 
 
