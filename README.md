@@ -98,4 +98,16 @@ For this deliverable I made functionality for the user to login/create an accoun
 
 ### WebSocket deliverable
 
+For this deliverable I used webSocket to update the votes on the frontend in realtime.
+
+ - [x] - done - Backend listens for WebSocket connection - done!
+ - [x] - done - Frontend makes WebSocket connection - done!
+ - [x] - done - Data sent over WebSocket connection - done!
+ - [] - not yet - WebSocket data displayed - I was not able to get the user votes to display in realtime.
+
 ### React deliverable
+
+ - [] - not yet - Bundled using Vite
+ - [] - not yet - Multiple functional react components
+ - [] - not yet - React router
+ - [] - not yet - React hooks
