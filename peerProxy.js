@@ -7,6 +7,7 @@ function peerProxy(httpServer) {
 
   // Handle the protocol upgrade from HTTP to WebSocket
   httpServer.on('upgrade', (request, socket, head) => {
+    console.log('trying to upgrade connection to webSocket');
     wss.handleUpgrade(request, socket, head, function done(ws) {
       wss.emit('connection', ws, request);
     });
@@ -16,11 +17,13 @@ function peerProxy(httpServer) {
   let connections = [];
 
   wss.on('connection', (ws) => {
+    console.log('anew webSocket connection was made.');
     const connection = { id: uuid.v4(), alive: true, ws: ws };
     connections.push(connection);
 
     // Forward messages to everyone except the sender
     ws.on('message', function message(data) {
+        console.log('received a message:', data);
       connections.forEach((c) => {
         if (c.id !== connection.id) {
           c.ws.send(data);
@@ -30,6 +33,7 @@ function peerProxy(httpServer) {
 
     // Remove the closed connection so we don't try to forward anymore
     ws.on('close', () => {
+        console.log('the webSocket connection is closed');
       const pos = connections.findIndex((o, i) => o.id === connection.id);
 
       if (pos >= 0) {
@@ -59,12 +63,16 @@ function peerProxy(httpServer) {
 
 //change
 function broadcastTopMovie(topMovie) {
+    console.log('broadcasting the top movie:', topMovie);
     const message = JSON.stringify({
         type: 'updateTopMovie',
         movieTitle: topMovie._id,
         count: topMovie.count
     });
-    connections.forEach(conn => conn.ws.send(message));
+    connections.forEach(conn => {
+        console.log(`now sending to connection ID: ${conn.id}, message: ${message}`);
+        conn.ws.send(message);
+    });
 }
 
 module.exports = { peerProxy, broadcastTopMovie };

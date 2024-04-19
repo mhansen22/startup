@@ -5,6 +5,7 @@ const app = express();
 const DB = require('./database.js');
 const { peerProxy } = require('./peerProxy.js');
 const { getTopVotedMovie } = require('./database');
+const seedrandom = require('seedrandom');
 
 
 // const { createServer } = require('http');
@@ -129,14 +130,15 @@ apiRouter.get('/movies', async (req, res) => {
       year: movie.release_date.substring(0, 4),
     }));
 
-    function shuffleArray(array) {
-      for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-      }
-    }
-
-    shuffleArray(refinedMovies);
+    // function shuffleArray(array) {
+    //   for (let i = array.length - 1; i > 0; i--) {
+    //     const j = Math.floor(Math.random() * (i + 1));
+    //     [array[i], array[j]] = [array[j], array[i]];
+    //   }
+    // }
+    //change for movies
+    shuffleArray(refinedMovies, new Date().toDateString());
+    // shuffleArray(refinedMovies);
     let selectedMovies = refinedMovies.slice(0, 3);
 
     res.json(selectedMovies);
@@ -161,6 +163,7 @@ secureApiRouter.post('/vote', async (req, res) => {
       const vote = await DB.logVote(user._id, movieTitle);
       const topMovie = await getTopVotedMovie();//get top movie
       if (topMovie) {
+          console.log("top voted movie retrieved, broadcasting:", topMovie);
           peerProxy.broadcastTopMovie(topMovie);//brodcast method used here
       }
       res.send({ msg: 'Vote logged', vote: vote });
@@ -169,6 +172,16 @@ secureApiRouter.post('/vote', async (req, res) => {
       res.status(500).send({ msg: 'Failed to log vote' });
   }
 });
+
+
+//change for keeping movies the same:
+function shuffleArray(array, seed) {
+  const rng = seedrandom(seed);
+  for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+  }
+}
 
 
 

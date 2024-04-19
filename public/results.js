@@ -40,11 +40,14 @@ const username = localStorage.getItem("Username");
     document.addEventListener("DOMContentLoaded", () => {
         const protocol = window.location.protocol === 'http:' ? 'ws' : 'wss';
         const ws = new WebSocket(`${protocol}://${window.location.host}/ws`);
+        console.log(`the webSocket URL: ${protocol}://${window.location.host}/ws`);
+
         ws.onopen = () => {
-            console.log("Connected to WebSocket server.");
+            console.log("I am connected WebSocket server.");
         };
     
         ws.onmessage = (event) => {
+            console.log("I received a message from server:", event.data);
             const data = JSON.parse(event.data);
             if (data.type === 'updateTopMovie') {
                 updateTopMovieUI(data.movieTitle, data.count);
@@ -52,6 +55,7 @@ const username = localStorage.getItem("Username");
         };
     
         function updateTopMovieUI(movieTitle, votes) {
+            console.log("new movie being added/updated");
             const movieWinnerElement = document.getElementById("movieWinner");
             const winnerVotesElement = document.getElementById("winnerVotes");
     
