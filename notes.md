@@ -5013,3 +5013,1161 @@ Note that you can also start up Node and execute the index.js code directly in V
 
 Deno and Bun
 You should be aware that Ryan has created a successor to Node.js called Deno. This version is more compliant with advances in ECMAScript and has significant performance enhancements. There are also competitor server JavaScript applications. One of the more interesting rising stars is called Bun. If you have the time you should learn about them.
+
+
+
+## Express
+📖 Deeper dive reading: MDN Express/Node introduction
+
+In the previous instruction you saw how to use Node.js to create a simple web server. This works great for little projects where you are trying to quickly serve up some web content, but to build a production-ready application you need a framework with a bit more functionality for easily implementing a full web service. This is where the Node package Express come in. Express provides support for:
+
+Routing requests for service endpoints
+Manipulating HTTP requests with JSON body content
+Generating HTTP responses
+Using middleware to add functionality
+Express was created by TJ Holowaychuk and is currently maintained by the Open.js Foundation.
+
+TJ Holowaychuk
+
+“People tell you to not reinvent things, but I think you should … it will teach you things”
+
+— TJ Holowaychuk
+
+Everything in Express revolves around creating and using HTTP routing and middleware functions. You create an Express application by using NPM to install the Express package and then calling the express constructor to create the Express application and listen for HTTP requests on a desired port.
+```js
+➜ npm install express
+const express = require('express');
+const app = express();
+
+app.listen(8080);
+```
+With the app object you can now add HTTP routing and middleware functions to the application.
+
+Defining routes
+HTTP endpoints are implemented in Express by defining routes that call a function based upon an HTTP path. The Express app object supports all of the HTTP verbs as functions on the object. For example, if you want to have a route function that handles an HTTP GET request for the URL path /store/provo you would call the get method on the app.
+```js
+app.get('/store/provo', (req, res, next) => {
+  res.send({name: 'provo'});
+});
+```
+The get function takes two parameters, a URL path matching pattern, and a callback function that is invoked when the pattern matches. The path matching parameter is used to match against the URL path of an incoming HTTP request.
+
+The callback function has three parameters that represent the HTTP request object (req), the HTTP response object (res), and the next routing function that Express expects to be called if this routing function wants another function to generate a response.
+
+The Express app compares the routing function patterns in the order that they are added to the Express app object. So if you have two routing functions with patterns that both match, the first one that was added will be called and given the next matching function in the next parameter.
+
+In our example above we hard coded the store name to be provo. A real store endpoint would allow any store name to be provided as a parameter in the path. Express supports path parameters by prefixing the parameter name with a colon (:). Express creates a map of path parameters and populates it with the matching values found in the URL path. You then reference the parameters using the req.params object. Using this pattern you can rewrite our getStore endpoint as follows.
+```js
+app.get('/store/:storeName', (req, res, next) => {
+  res.send({name: req.params.storeName});
+});
+```
+If we run our JavaScript using node we can see the result when we make an HTTP request using curl.
+```js
+➜ curl localhost:8080/store/orem
+{"name":"orem"}
+```
+If you wanted an endpoint that used the POST or DELETE HTTP verb then you just use the post or delete function on the Express app object.
+
+The route path can also include a limited wildcard syntax or even full regular expressions in path pattern. Here are a couple route functions using different pattern syntax.
+```js
+// Wildcard - matches /store/x and /star/y
+app.put('/st*/:storeName', (req, res) => res.send({update: req.params.storeName}));
+
+// Pure regular expression
+app.delete(/\/store\/(.+)/, (req, res) => res.send({delete: req.params[0]}));
+```
+Notice that in these examples the next parameter was omitted. Since we are not calling next we do not need to include it as a parameter. However, if you do not call next then no following middleware functions will be invoked for the request.
+
+Using middleware
+📖 Deeper dive reading: Express Middleware
+
+The standard Mediator/Middleware design pattern has two pieces: a mediator and middleware. Middleware represents componentized pieces of functionality. The mediator loads the middleware components and determines their order of execution. When a request comes to the mediator it then passes the request around to the middleware components. Following this pattern, Express is the mediator, and middleware functions are the middleware components.
+
+Express comes with a standard set of middleware functions. These provide functionality like routing, authentication, CORS, sessions, serving static web files, cookies, and logging. Some middleware functions are provided by default, and other ones must be installed using NPM before you can use them. You can also write your own middleware functions and use them with Express.
+
+A middleware function looks very similar to a routing function. That is because routing functions are also middleware functions. The only difference is that routing functions are only called if the associated pattern matches. Middleware functions are always called for every HTTP request unless a preceding middleware function does not call next. A middleware function has the following pattern:
+
+function middlewareName(req, res, next)
+The middleware function parameters represent the HTTP request object (req), the HTTP response object (res), and the next middleware function to pass processing to. You should usually call the next function after completing processing so that the next middleware function can execute.
+
+Middleware
+
+Creating your own middleware
+As an example of writing your own middleware, you can create a function that logs out the URL of the request and then passes on processing to the next middleware function.
+```js
+app.use((req, res, next) => {
+  console.log(req.originalUrl);
+  next();
+});
+```
+Remember that the order that you add your middleware to the Express app object controls the order that the middleware functions are called. Any middleware that does not call the next function after doing its processing, stops the middleware chain from continuing.
+
+Builtin middleware
+In addition to creating your own middleware functions, you can use a built-in middleware function. Here is an example of using the static middleware function. This middleware responds with static files, found in a given directory, that match the request URL.
+```js
+app.use(express.static('public'));
+```
+Now if you create a subdirectory in your project directory and name it public you can serve up any static content that you would like. For example, you could create an index.html file that is the default content for your web service. Then when you call your web service without any path the index.html file will be returned.
+
+Third party middleware
+You can also use third party middleware functions by using NPM to install the package and including the package in your JavaScript with the require function. The following uses the cookie-parser package to simplify the generation and access of cookies.
+```js
+➜ npm install cookie-parser
+const cookieParser = require('cookie-parser');
+
+app.use(cookieParser());
+
+app.post('/cookie/:name/:value', (req, res, next) => {
+  res.cookie(req.params.name, req.params.value);
+  res.send({cookie: `${req.params.name}:${req.params.value}`});
+});
+
+app.get('/cookie', (req, res, next) => {
+  res.send({cookie: req.cookies});
+});
+```
+It is common for middleware functions to add fields and functions to the req and res objects so that other middleware can access the functionality they provide. You see this happening when the cookie-parser middleware adds the req.cookies object for reading cookies, and also adds the res.cookie function in order to make it easy to add a cookie to a response.
+
+Error handling middleware
+You can also add middleware for handling errors that occur. Error middleware looks similar to other middleware functions, but it takes an additional err parameter that contains the error.
+
+function errorMiddlewareName(err, req, res, next)
+If you wanted to add a simple error handler for anything that might go wrong while processing HTTP requests you could add the following.
+```js
+app.use(function (err, req, res, next) {
+  res.status(500).send({type: err.name, message: err.message});
+});
+```
+We can test that our error middleware is getting used by adding a new endpoint that generates an error.
+```js
+app.get('/error', (req, res, next) => {
+  throw new Error('Trouble in river city');
+});
+```
+Now if we use curl to call our error endpoint we can see that the response comes from the error middleware.
+```js
+➜ curl localhost:8080/error
+{"type":"Error","message":"Trouble in river city"}
+Putting it all together
+Here is a full example of our web service built using Express.
+
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const app = express();
+
+// Third party middleware - Cookies
+app.use(cookieParser());
+
+app.post('/cookie/:name/:value', (req, res, next) => {
+  res.cookie(req.params.name, req.params.value);
+  res.send({cookie: `${req.params.name}:${req.params.value}`});
+});
+
+app.get('/cookie', (req, res, next) => {
+  res.send({cookie: req.cookies});
+});
+
+// Creating your own middleware - logging
+app.use((req, res, next) => {
+  console.log(req.originalUrl);
+  next();
+});
+
+// Built in middleware - Static file hosting
+app.use(express.static('public'));
+
+// Routing middleware
+app.get('/store/:storeName', (req, res) => {
+  res.send({name: req.params.storeName});
+});
+
+app.put('/st*/:storeName', (req, res) => res.send({update: req.params.storeName}));
+
+app.delete(/\/store\/(.+)/, (req, res) => res.send({delete: req.params[0]}));
+
+// Error middleware
+app.get('/error', (req, res, next) => {
+  throw new Error('Trouble in river city');
+});
+
+app.use(function (err, req, res, next) {
+  res.status(500).send({type: err.name, message: err.message});
+});
+
+// Listening to a network port
+const port = 8080;
+app.listen(port, function () {
+  console.log(`Listening on port ${port}`);
+});
+```
+
+## Troubleshoot a 502 Status Code
+Deeper dive reading: Status Codes
+
+In this class you may encounter a 502 status code when you deploy either Simon or your Startup to your production environment. This error means that Caddy cannot load your HTTP service. This happens when your code is missing files, crashes when it is running, or doesn't start correctly. That causing PM2 to stop running your service.
+
+In order to fix a 502 status code, you will need to ssh into your production environment and preform some troubleshooting. Below are some steps to get you started.
+
+General steps
+SSH into your production environment in a bash terminal using the command:
+
+ssh -i <path to your pem file> ubuntu@<your domain name>
+For example:
+
+ssh -i ~/Desktop/CS260/production.pem ubuntu@cs260.click
+Navigate to the affected service directory ex. cd services/<startup or simon>
+
+List out the files inside your directory using ls. Check to see if all files that need to be there are present.
+
+Check to see that your javascript file containing the code to start your node server is named index.js (needs to be all lowercase).
+
+Check to see that your file structure is correct. ie. public folder with frontend code inside, server files in project root directory, etc.
+
+Check to see if the port listed inside of index.js is correct for the service. (Port 3000 for Simon, Port 4000 for your Startup)
+
+If you had to edit any files while in your production environment, run pm2 restart <service> to restart your service and check your browser. Make sure you replace <service> with the service you are trying to fix. For example, pm2 restart startup. If your web service appears, you are finished. (Note: any redeployment will automatically run pm2 restart <service>)
+
+Additional steps
+Sometimes the above steps may not be enough to fix the server error. If this is the case follow these additional steps:
+
+While still in your production environment and in the affected service directory, run node index.js. For example:
+
+cd ~/services/startup
+node index.js
+If an error message appears in the terminal then read it carefully and fix the problem.
+
+If a node module is missing, you need to install the module (e.g. npm install <module>) in your development environment and redeploy.
+If a file is missing, or a file path is incorrect, move the file to the proper location / fix the file path in your development environment and redeploy.
+If no error message appears then you can verify that the service is reachable from your browser. If that works then press ctrl c to stop the node server from running. This means that the problem is with how PM2 is configured to run your service. Check to see what PM2 is running with the command pm2 describe <service>. For example:
+
+pm2 describe startup
+ Describing process with id 1 - name startup
+ ```js
+┌───────────────────┬──────────────────────────────────────────┐
+│ status            │ errored                                  │
+│ name              │ startup                                  │
+│ namespace         │ default                                  │
+│ version           │ N/A                                      │
+│ restarts          │ 67                                       │
+│ uptime            │ 7D                                       │
+│ script path       │ /home/ubuntu/services/startup/index.js   │
+│ script args       │ 4000 startup                             │
+│ error log path    │ /home/ubuntu/.pm2/logs/startup-error.log │
+│ out log path      │ /home/ubuntu/.pm2/logs/startup-out.log   │
+│ pid path          │ /home/ubuntu/.pm2/pids/startup-1.pid     │
+│ interpreter       │ node                                     │
+│ interpreter args  │ N/A                                      │
+│ script id         │ 1                                        │
+│ exec cwd          │ /home/ubuntu/services/startup            │
+│ exec mode         │ fork_mode                                │
+│ node.js version   │ 18.16.0                                  │
+│ node env          │ N/A                                      │
+│ watch & reload    │ ✘                                        │
+│ unstable restarts │ 0                                        │
+│ created at        │ 2024-04-15T20:34:56.546Z                 │
+└───────────────────┴──────────────────────────────────────────┘
+```
+This should give you some indication of why PM2 is not starting your service correctly. For example, the status is errored and it is expecting to find the main JavaScript file in services/startup/index.js running on port 4000. Check that all of those assumptions are true.
+
+After fixing the problem in your development environment and redeploying, check to see if the service comes up. If it doesn't then repeat the steps and see if there is another error.
+
+While these steps should resolve most issues, it may not resolve every issue. If after preforming these troubleshooting steps you are still seeing a 502 status code, reach out to the TAs or professor for help.
+
+Common issues for each deliverable
+```js
+Service
+Incorrect file structure
+Incorrect file/folder names
+Incorrect port listed in index.js
+Missing node modules: express, cookie-parser\*
+Login/DB
+Missing dbConfig.json file (file not imported correctly or not located with all of the other server files)
+Missing connection to MongoDB due to IP rules not being set to allow access from anywhere
+Missing node modules: bcrypt, uuid, mongodb, express, cookie-parser
+Websocket
+Missing peerProxy.js file (if using a separate file for backend websocket)
+Incorrect path to file location of peerProxy.js
+Missing node modules: ws, bcrypt, uuid, mongodb, express, cookie-parser
+React
+Build file was created incorrectly
+Incorrect port listed in index.js & vite.config.js
+```
+
+
+## Simon Service
+Simon
+
+This deliverable demonstrates converting the JavaScript application into a web application by implementing a web service that listens on a network port for HTTP requests. The web service provides endpoints for getting and updating the scores. The application also uses a couple third party endpoints to display inspirational quotes on the about page and show a random header image.
+
+We will use Node.js and Express to create our HTTP service.
+
+You can view this application running here: Example Simon Service
+
+Simon Service
+
+Service endpoint definitions
+Here is our design, documented using curl commands, for the two endpoints that the Simon web service provides.
+
+GetScores - Get the latest high scores.
+
+curl -X GET /api/scores
+```js
+#Response
+{ "scores":[
+  {"name":"Harvey", "score":"337", "date":"2022/11/20"},
+  {"name":"도윤 이", "score":"95", "date":"2019/05/20"}
+]}
+```
+SubmitScore - Submit a score for consideration in the list of high scores.
+
+curl -X POST /api/score -d '{"name":"Harvey", "score":"337", "date":"2022/11/20"}'
+
+#Response
+```js
+{ "scores":[
+  {"name":"Harvey", "score":"337", "date":"2022/11/20"},
+  {"name":"도윤 이", "score":"95", "date":"2019/05/20"}
+]}
+```
+Third party endpoints
+The about.js file contains code for making calls to third party endpoints using fetch. We make one call to picsum.photos to get a random picture and another to quotable.io to get a random quote. Once the endpoint asynchronously returns, the DOM is updated with the requested data. Here is an example of the quote endpoint call.
+```js
+function displayQuote(data) {
+  fetch('https://api.quotable.io/random')
+    .then((response) => response.json())
+    .then((data) => {
+      const containerEl = document.querySelector('#quote');
+
+      const quoteEl = document.createElement('p');
+      quoteEl.classList.add('quote');
+      const authorEl = document.createElement('p');
+      authorEl.classList.add('author');
+
+      quoteEl.textContent = data.content;
+      authorEl.textContent = data.author;
+
+      containerEl.appendChild(quoteEl);
+      containerEl.appendChild(authorEl);
+    });
+}
+```
+Steps to convert Simon to a service
+Converting Simon to a service involved the following steps.
+
+Move all the previous deliverable code files (_.html, _.js, *.css, favicon.ico, and assets) into a sub-directory named public. We will use the HTTP Node.js based service to host the frontend application files. This is done with the static file middleware that we will add our service index.js.
+
+app.use(express.static('public'));
+When running our service the static file middleware takes care of reading the frontend code from the public directory and returning it to the browser. The service only directly handles the endpoint requests.
+
+Simon service
+
+Within the project directory run npm init -y. This configures the directory to work with node.js.
+
+Modify or create .gitignore to ignore node_modules.
+
+Install the Express package by running npm install express. This will write the Express package dependency in the package.json file and install all the Express code to the node_modules directory.
+
+Create a file named index.js in the root of the project. This is the entry point that node.js will call when you run your web service.
+
+Add the basic Express JavaScript code needed to host the application static content and the desired endpoints.
+```js
+const express = require('express');
+const app = express();
+
+// The service port. In production the frontend code is statically hosted by the service on the same port.
+const port = process.argv.length > 2 ? process.argv[2] : 3000;
+
+// JSON body parsing using built-in middleware
+app.use(express.json());
+
+// Serve up the frontend static content hosting
+app.use(express.static('public'));
+
+// Router for service endpoints
+const apiRouter = express.Router();
+app.use(`/api`, apiRouter);
+
+// GetScores
+apiRouter.get('/scores', (_req, res) => {
+  res.send(scores);
+});
+
+// SubmitScore
+apiRouter.post('/score', (req, res) => {
+  scores = updateScores(req.body, scores);
+  res.send(scores);
+});
+
+// Return the application's default page if the path is unknown
+app.use((_req, res) => {
+  res.sendFile('index.html', { root: 'public' });
+});
+
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
+```
+Modify the Simon application code to make service endpoint requests to our newly created HTTP service code.
+```js
+async function loadScores() {
+  const response = await fetch("/api/scores")
+  const scores = await response.json()
+
+  // Modify the DOM to display the scores
+```
+Study this code
+Get familiar with what the example code teaches.
+
+Clone the repository to your development environment.
+
+git clone https://github.com/webprogramming260/simon-service.git
+Review the code and get comfortable with everything it represents.
+
+Debug the code in your browser by hosting it from a VS Code debug session. This video on debugging a node.js based service will step you through the process.
+
+⚠ You will no longer use the live server extension to launch your frontend code in the browser since your frontend code will now be served up by the Node.js server you created in index.js. Set breakpoints in your backend code inside of VS Code.
+
+Use the browser's dev tools to set breakpoints in the frontend code and step through it each line.
+
+Make modifications to the code as desired. Experiment and see what happens.
+
+
+
+## SOP and CORS
+📖 Deeper dive reading:
+
+MDN Same origin policy
+MDN Cross origin resource sharing
+Security should always be on your mind when you are working with the web. The ability to provide services to a global audience makes the information on the web very valuable, and therefore an attractive target for nefarious parties. When website architecture and browser clients were still in their infancy they allowed JavaScript to make requests from one domain while displaying a website from a different domain. These are called cross-origin requests.
+
+Consider the following example. An attacker sends out an email with a link to a hacker website (byu.iinstructure.com) that is similar to the real course website. Notice the additional i. If the hacker website could request anything from the real website then it could make itself appear and act just like the real education website. All it would have to do is request images, html, and login endpoints from the course's website and display the results on the hacker website. This would give the hacker access to everything the user did.
+
+To combat this problem the Same Origin Policy (SOP) was created. Simply stated SOP only allows JavaScript to make requests to a domain if it is the same domain that the user is currently viewing. A request from byu.iinstructure.com for service endpoints that are made to byu.instructure.com would fail because the domains do not match. This provides significant security, but it also introduces complications when building web applications. For example, if you want build a service that any web application can use it would also violate the SOP and fail. In order to address this, the concept of Cross Origin Resource Sharing (CORS) was invented.
+
+CORS allows the client (e.g. browser) to specify the origin of a request and then let the server respond with what origins are allowed. The server may say that all origins are allowed, for example if they are a general purpose image provider, or only a specific origin is allowed, for example if they are a bank's authentication service. If the server doesn't specify what origin is allowed then the browser assumes that it must be the same origin.
+
+Going back to our hacker example, the HTTP request from the hacker site (byu.iinstructure.com) to the course's authentication service (byu.instructure.com) would look like the following.
+```js
+GET /api/auth/login HTTP/2
+Host: byu.instructure.com
+Origin: https://byu.iinstructure.com
+In response the course website would return:
+
+HTTP/2 200 OK
+Access-Control-Allow-Origin: https://byu.instructure.com
+```
+The browser would then see that the actual origin of the request does not match the allowed origin and so the browser blocks the response and generates an error.
+
+Notice that with CORS, it is the browser that is protecting the user from accessing the course website's authentication endpoint from the wrong origin. CORS is only meant to alert the user that something nefarious is being attempted. A hacker can still proxy requests through their own server to the course website and completely ignore the Access-Control-Allow-Origin header. Therefore the course website needs to implement its own precautions to stop a hacker from using its services inappropriately.
+
+Using third party services
+When you make requests to your own web services you are always on the same origin and so you will not violate the SOP. However, if you want to make requests to a different domain than the one your web application is hosted on, then you need to make sure that domain allows requests as defined by the Access-Control-Allow-Origin header it returns. For example, if I have JavaScript in my web application loaded from cs260.click that makes a fetch request for an image from the website i.picsum.photos the browser will fail the request with an HTTP status code of 403 and an error message that CORS has blocked the request.
+
+CORS
+
+That happens because i.picsum.photos does not return an Access-Control-Allow-Origin header. Without a header the browser assumes that all requests must be made from the same origin.
+
+If your web application instead makes a service request to icanhazdadjoke.com to get a joke, that request will succeed because icanhazdadjoke.com returns an Access-Control-Allow-Origin header with a value of * meaning that any origin can make requests to this service.
+```js
+HTTP/2 200
+access-control-allow-origin: *
+```
+
+Did you hear about the bread factory burning down? They say the business is toast.
+This would have also succeeded if the HTTP header had explicitly listed your web application domain. For example, if you make your request from the origin cs260.click the following response would also satisfy CORS.
+```js
+HTTP/2 200
+access-control-allow-origin: https://cs260.click
+```
+
+I’ll tell you something about German sausages, they’re the wurst
+This all means that you need to test the services you want to use before you include them in your application. Make sure they are responding with * or your calling origin. If they do not then you will not be able to use them.
+
+
+## Service design
+Web services provide the interactive functionality of your web application. They commonly authenticate users, track their session state, provide, store, and analyze data, connect peers, and aggregate user information. Making your web service easy to use, performant, and extensible are factors that determine the success of your application. A good design will result in increased productivity, satisfied users, and lower processing costs.
+
+Model and sequence diagrams
+When first considering your service design it is helpful to model the application's primary objects and the interactions of the objects. You should attempt to stay as close to the model that is in your user's mind as possible. Avoid introducing a model that focuses on programming constructs and infrastructure. For example, a chat program should model participants, conversations, and messages. It should not model user devices, network connections, and data blobs.
+
+Once you have defined your primary objects you can create sequence diagrams that show how the objects interact with each other. This will help clarify your model and define the necessary endpoints. You can use a simple tool like SequenceDiagram.org to create and share diagrams.
+
+Sequence Diagram
+
+Leveraging HTTP
+Web services are usually provided over HTTP, and so HTTP greatly influences the design of the service. The HTTP verbs such as GET, POST, PUT, and DELETE often mirror the designed actions of a web service. For example, a web service for managing comments might list the comments (GET), create a comment (POST), update a comment (PUT), and delete a comment (DELETE). Likewise, the MIME content types defined by IANA are a natural fit for defining the types of content that you want to provide (e.g. HTML, PNG, MP3, and MP4). The goal is to leverage those technologies as much as possible so that you don't have to recreate the functionality they provide and instead take advantage of the significant networking infrastructure built up around HTTP. This includes caching servers that increase your performance, edge servers that bring your content closer, and replication servers that provide redundant copies of your content and make your application more resilient to network failures.
+
+HTTP
+
+Endpoints
+A web service is usually divided up into multiple service endpoints. Each endpoint provides a single functional purpose. All of the criteria that you would apply to creating well designed code functions also applies when exposing service endpoints.
+
+HTTP
+
+⚠ Note that service endpoints are often called an Application Programming Interface (API). This is a throwback to old desktop applications and the programming interfaces that they exposed. Sometimes the term API refers to the entire collection of endpoints, and sometimes it is used to refer to a single endpoint.
+
+Here are some things you should consider when designing your service's endpoints.
+
+Grammatical - With HTTP everything is a resource (think noun or object). You act on the resource with an HTTP verb. For example, you might have an order resource that is contained in a store resource. You then create, get, update, and delete order resources on the store resource.
+
+Readable - The resource you are referencing with an HTTP request should be clearly readable in the URL path. For example, an order resource might contain the path to both the order and store where the order resource resides: /store/provo/order/28502. This makes it easier to remember how to use the endpoint because it is human readable.
+
+Discoverable - As you expose resources that contain other resources you can provide the endpoints for the aggregated resources. This makes it so someone using your endpoints only needs to remember the top level endpoint and then they can discover everything else. For example, if you have a store endpoint that returns information about a store you can include an endpoint for working with a store in the response.
+```js
+GET /store/provo  HTTP/2
+{
+  "id": "provo",
+  "address": "Cougar blvd",
+  "orders": "https://cs260.click/store/provo/orders",
+  "employees": "https://cs260.click/store/provo/employees"
+}
+```
+Compatible - When you build your endpoints you want to make it so that you can add new functionality without breaking existing clients. Usually this means that the clients of your service endpoints should ignore anything that they don't understand. Consider the two following JSON response versions.
+```js
+Version 1
+
+{
+  "name": "John Taylor"
+}
+Version 2
+
+{
+  "name": "John Taylor",
+  "givenName": "John",
+  "familyName": "Taylor"
+}
+```
+By adding a new representation of the name field, you provide new functionality for clients that know how to use the new fields without harming older clients that ignore the new fields and simply use the old representation. This is all done without officially versioning the endpoint.
+
+If you are fortunate enough to be able to control all of your client code you can mark the name field as depreciated and in a future version remove it once all of the clients have upgraded. Usually you want to keep compatibility with at least one previous version of the endpoint so that there is enough time for all of the clients to migrate before compatibility is removed.
+
+Simple - Keeping your endpoints focused on the primary resources of your application helps to avoid the temptation to add endpoints that duplicate or create parallel access to primary resources. It is very helpful to write some simple class and sequence diagrams that outline your primary resources before you begin coding. These resources should focus on the actual resources of the system you are modeling. They should not focus on the data structure or devices used to host the resources. There should only be one way to act on a resource. Endpoints should only do one thing.
+
+Documented - The Open API Specification is a good example of tooling that helps create, use, and maintain documentation of your service endpoints. It is highly suggested that you make use of such tools in order to provide client libraries for your endpoints and a sandbox for experimentation. Creating an initial draft of your endpoint documentation before you begin coding will help you mentally clarify your design and produce a better final result. Providing access to your endpoint documentation along with your production system helps with client implementations and facilitates easier maintenance of the service. The Swagger Petstore example documentation is a reasonable example to follow.
+
+There are many models for exposing endpoints. We will consider three common ones, RPC, REST, and GraphQL.
+
+RPC
+Remote Procedure Calls (RPC) expose service endpoints as simple function calls. When RPC is used over HTTP it usually just leverages the POST HTTP verb. The actual verb and subject of the function call is represented by the function name. For example, deleteOrder or updateOrder. The name of the function is either the entire path of the URL or a parameter in the POST body.
+```js
+POST /updateOrder HTTP/2
+
+{"id": 2197, "date": "20220505"}
+```
+or
+```js
+POST /rpc HTTP/2
+
+{"cmd":"updateOrder", "params":{"id": 2197, "date": "20220505"}}
+```
+One advantage of RPC is that it maps directly to function calls that might exist within the server. This could also be considered a disadvantage as it directly exposes the inner workings of the service, and thus creates a coupling between the endpoints and the implementation.
+
+REST
+Representational State Transfer (REST) attempts to take advantage of the foundational principles of HTTP. This is not surprising considering the principle author of REST, Roy Fielding, was also a contributor to the HTTP specification. REST HTTP verbs always act upon a resource. Operations on a resource impact the state of the resource as it is transferred by a REST endpoint call. This allows for the caching functionality of HTTP to work optimally. For example, GET will always return the same resource until a PUT is executed on the resource. When PUT is used, the cached resource is replaced with the updated resource.
+
+With REST the updateOrder endpoint would look like the following.
+```js
+PUT /order/2197 HTTP/2
+
+{"date": "20220505"}
+```
+Where the proper HTTP verb is used and the URL path uniquely identifies the resource. These seem like small differences, but maximizing HTTP pays dividends by making it easy for HTTP infrastructure, such as caching, to work properly.
+
+There are several other pieces of Fielding's dissertation on REST, such as hypermedia, that are often quoted as being required for a truly "restful" implementation, and these are just as often ignored.
+
+GraphQL
+GraphQL focuses on the manipulation of data instead of a function call (RPC) or a resource (REST). The heart of GraphQL is a query that specifies the desired data and how it should be joined and filtered. GraphQL was developed to address frustration concerning the massive number of REST, or RPC calls, that a web application client needed to make in order to support even a simple UI widget.
+
+Instead of making a call for getting a store, and then a bunch of calls for getting the store's orders and employees, GraphQL would send a single query that would request all of that information in one big JSON response. The server would examine the query, join the desired data, and then filter out anything that was not wanted.
+
+Here is an example GraphQL query.
+```js
+query {
+  getOrder(id: "2197") {
+    orders(filter: {date: {allofterms: "20220505"}}) {
+      store
+      description
+      orderedBy
+    }
+  }
+}
+```
+GraphQL helps to remove a lot of the logic for parsing endpoints and mapping requests to specific resources. Basically in GraphQL there is only one endpoint. The query endpoint.
+
+The downside of that flexibility is that the client now has significant power to consume resources on the server. There is no clear boundary on what, how much, or how complicated the aggregation of data is. It also is difficult for the server to implement authorization rights to data as they have to be baked into the data schema. However, there are standards for how to define a complex schema. Common GraphQL packages provide support for schema implementations along with database adaptors for query support.
+
+
+## Debugging Node.js
+🔑 Required reading: Debugging a Node.js application
+
+📖 Deeper dive reading: Node.js debugging in VS Code
+
+Previously your JavaScript debugging was done by running the Live Server VS Code extension and using the browser's debugging tools as it executed in the browser. Now that you are writing JavaScript that runs using Node.js, you need a way to launch and debug your code that runs outside of the browser. One great way to do that is to use the debugging tools built into VS Code. To debug JavaScript in VS Code you first need some JavaScript to debug. Open up VS Code and create a new file named main.js and paste the following code into the file.
+```js
+let x = 1 + 1;
+
+console.log(x);
+
+function double(x) {
+  return x * 2;
+}
+
+x = double(x);
+
+console.log(x);
+```
+You can now debug main.js in VS Code by executing the Start Debugging command by pressing F5. The first time you run this, VS Code will ask you what debugger you want to use. Select Node.js.
+
+Debug start
+
+The code will execute and the debug console window will automatically open to show you the debugger output where you can see the results of the two console.log statements found in the code.
+
+Debug output
+
+You can pause execution of the code by setting a breakpoint. Move your cursor over to the far left side of the editor window. As you hover on the left side of the line numbers you will see a red dot appear. Click on the dot to set the breakpoint.
+
+Debug output
+
+Now start the debugger again by pressing F5. The code will start running, but pause on the line with the breakpoint. You can then see the values of variables by looking at the variable window on the left, or by hovering your mouse over the variable you would like to inspect.
+
+Debug pause
+
+You can continue execution of the code by pressing F10 to step to the next line, F11 to step into a function call, or F5 to continue running from the current line. When the last line of code executes the debugger will automatically exit and you will need to press F5 to start it running again. You can stop debugging at any time by pressing SHIFT-F5.
+
+Experiment with this simple file until you are comfortable running the debugger, setting breakpoints, and inspecting variables.
+
+Debugging a Node.js web service
+In order to debug a web service running under Node.js we first need to write our code. Replace the code in your main.js file with the following.
+```js
+const express = require('express');
+const app = express();
+
+app.get('/*', (req, res) => {
+  res.send({ url: req.originalUrl });
+});
+
+const port = 8080;
+app.listen(port, function () {
+  console.log(`Listening on port ${port}`);
+});
+```
+Switch to your console application and run npm init -y and npm install express from your code directory so that we can use the Express package to write a simple web service.
+
+Now we are ready to debug again. Set a breakpoint on the getStore endpoint callback (line 5) and the app.listen call (line 9). Start debugging by pressing F5. The debugger should stop on the listen call where you can inspect the app variable. Press F5 again to continue running. Now open up your browser and set the location to localhost:8080. This should hit the breakpoint on the endpoint. Take some time to inspect the req object. You should be able to see what the HTTP method is, what parameters are provided, and what the path currently is. Press F5 to continue.
+
+Your browser should display the JSON object, containing the URL, that you returned from your endpoint. Now change the URL in the browser to include a path and some query parameters. Something like http://localhost:8080/fish/taco?order=2. Requesting that URL should cause your breakpoint to hit again where you can see the URL changes reflected in the req object.
+
+Now, instead of pressing F5 to continue, press F11 to step into the res.send function. This will take you out of your code and into the Express code that handles sending a response. Because you installed the Express package using NPM, all of Express's source code is sitting in the node_modules directory. You can also set breakpoints there, examine variables, and step into functions. Debugging into popular packages is a great way to learn how to code by seeing how really good programmers do things. Take some time to walk around Holowaychuk's code and see if you can understand what it is doing.
+
+Debug step in
+
+Nodemon
+Once you start writing complex web applications you will find yourself making changes in the middle of debugging sessions and you would like to have node restart automatically and update the browser as the changes are saved. This seems like a simple thing, but over the course of hundreds of changes, every second you can save really starts to add up.
+
+The Nodemon package is basically a wrapper around node that watches for files in the project directory to change. When it detects that you saved something it will automatically restart node.
+
+If you would like to experiment with this then take the following steps. First install Nodemon globally so that you can use it to debug all of your projects.
+
+npm install -g nodemon
+Then, because VS Code does not know how to launch Nodemon automatically, you need create a VS Code launch configuration. In VS Code press CTRL-SHIFT-P (on Windows) or ⌘-SHIFT-P (on Mac) and type the command Debug: Add configuration. This will then ask you what type of configuration you would like to create. Type Node.js and select the Node.js: Nodemon setup option. In the launch configuration file that it creates, change the program from app.js to main.js (or whatever the main JavaScript file is for your application) and save the configuration file.
+
+Now when you press F5 to start debugging it will run Nodemon instead of Node.js, and your changes will automatically update your application when you save.
+
+
+## Development and production environments
+
+When working on a commercial web application, it is critical to separate where you develop your application, from where the production release of your application is made publicly available. Often times there are more environments than this, such as staging, internal testing, and external testing environments. If your company is seeking third party security certification (such as SOC2 compliance) they will require that these environments are strictly separated from each other. A developer will not have access to the production environment in order to prevent a developer from nefariously manipulating an entire company asset. Instead, automated integration processes, called continuous integration (CI) processes, checkout the application code, lint it, build it, test it, stage it, test it more, and then finally, if everything checks out, deploy the application to the production environment, and notify the different departments in the company of the release.
+
+Complex deployment
+
+For our work, you will use and manage both your development environment (your personal computer) and your production environment (your AWS server). However, you should never consider your production environment as a place to develop, or experiment with, your application. You may shell into the production environment to configure your server or to debug a production problem, but the deployment of your application should happen using an automated CI process. For our CI process, we will use a very simple console shell script.
+
+Simple deployment
+
+Automating your deployment
+The advantage of using an automated deployment process is that it is reproducible. You don't accidentally delete a file, or misconfigure something with an stray keystroke. Also, having a automated script encourages you to iterate quickly because it is so much easier to deploy your code. You can add a small feature, deploy it out to production, and get feedback within minutes from your users.
+
+Our deployment scripts change with each new technology that we have to deploy. Initially, they just copy up a directory of HTML files, but soon they include the ability to modify the configuration of your web server, run transpiler tools, and bundle your code into a deployable package.
+
+You run a deployment script from a console window in your development environment with a command like the following.
+```js
+./deployService.sh -k ~/prod.pem -h yourdomain.click -s simon
+```
+The -k parameter provides the credential file necessary to access your production environment. The -h parameter is the domain name of your production environment. The -s parameter represents the name of the application you are deploying (either simon or startup).
+
+This will make more sense as we gradually build up our technologies but we can discuss our simon-service deployment script as an example of what they will do. You can view the entire file here, but we will explain each step below. It isn't critical that you deeply understand everything in the script, but the more you do understand the easier it will be for you to track down and fix problems when they arise.
+
+The first part of the script simply parses the command line parameters so that we can pass in the production environment's security key (or PEM key), the hostname of your domain, and the name of the service you are deploying.
+```js
+while getopts k:h:s: flag
+do
+    case "${flag}" in
+        k) key=${OPTARG};;
+        h) hostname=${OPTARG};;
+        s) service=${OPTARG};;
+    esac
+done
+
+if [[ -z "$key" || -z "$hostname" || -z "$service" ]]; then
+    printf "\nMissing required parameter.\n"
+    printf "  syntax: deployService.sh -k <pem key file> -h <hostname> -s <service>\n\n"
+    exit 1
+fi
+
+printf "\n----> Deploying $service to $hostname with $key\n"
+```
+Next the script copies all of the applicable source files into a distribution directory (dist) in preparation for copying that directory to your production server.
+```js
+# Step 1
+printf "\n----> Build the distribution package\n"
+rm -rf dist
+mkdir dist
+cp -r application dist
+cp *.js dist
+cp package* dist
+The target directory on your production environment is deleted so that the new one can replace it. This is done by executing commands remotely using the secure shell program (ssh).
+
+# Step 2
+printf "\n----> Clearing out previous distribution on the target\n"
+ssh -i $key ubuntu@$hostname << ENDSSH
+rm -rf services/${service}
+mkdir -p services/${service}
+ENDSSH
+The distribution directory is then copied to the production environment using the secure copy program (scp).
+
+# Step 3
+printf "\n----> Copy the distribution package to the target\n"
+scp -r -i $key dist/* ubuntu@$hostname:services/$service
+We then use ssh again to execute some commands on the production environment. This installs the node packages with npm install and restarts the service daemon (PM2) that runs our web application in the production environment.
+
+# Step 4
+printf "\n----> Deploy the service on the target\n"
+ssh -i $key ubuntu@$hostname << ENDSSH
+cd services/${service}
+npm install
+pm2 restart ${service}
+ENDSSH
+Finally we clean up our development environment by deleting the distribution package.
+
+# Step 5
+printf "\n----> Removing local copy of the distribution package\n"
+rm -rf dist
+```
+Can you imagine if you had to do all of that by hand every time? You would dread deploying and would most likely make several time consuming mistakes during the process.
+
+A deployment script exists for each of the Simon projects and you can use them, as is, for your startup application as long as you are doing similar types of deployment actions.
+
+If you want to learn more about shell scripting you can read this tutorial. Shell scripting is a powerful tool for automating common development tasks and is well worth adding to your bucket of skills.
+
+
+## Uploading files
+
+Web applications often need to upload one or more files from the frontend application running in the browser to the backend service. We can accomplish this by using the HTML input element of type file on the frontend, and the Multer NPM package on the backend.
+
+upload flow
+
+Frontend Code
+The following frontend code registers and event handler for when the selected file changes and only accepts files of type .png, .jpeg, or .jpg. We also create an img placeholder element that will display the uploaded image once it has been stored on the server.
+```js
+<html lang="en">
+  <body>
+    <h1>Upload an image</h1>
+    <input
+      type="file"
+      id="fileInput"
+      name="file"
+      accept=".png, .jpeg, .jpg"
+      onchange="uploadFile(this)"
+    />
+    <div>
+      <img style="padding: 2em 0" id="upload" />
+    </div>
+    <script defer src="frontend.js"></script>
+  </body>
+</html>
+```
+The frontend JavaScript handles the uploading of the file to the server and then uses the filename returned from the server to set the src attribute of the image element in the DOM. If an error happens then an alert is displayed to the user.
+```js
+async function uploadFile(fileInput) {
+  const file = fileInput.files[0];
+  if (file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/upload', {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await response.json();
+    if (response.ok) {
+      document.querySelector('#upload').src = `/file/${data.file}`;
+    } else {
+      alert(data.message);
+    }
+  }
+}
+```
+Backend code
+In order to build storage support into our server, we first install the Multer NPM package to our project. There are other NPM packages that we can chose from, but Multer is commonly used. From your project directory, run the following console command.
+
+npm install multer
+Multer handles reading the file from the HTTP request, enforcing the size limit of the upload, and storing the file in the uploads directory. Additionally our service code does the following:
+
+Handles requests for static files so that we can serve up our frontend code.
+Handles errors such as when the 64k file limit is violated.
+Provides a GET endpoint to serve up a file from the uploads directory.
+```js
+const express = require('express');
+const multer = require('multer');
+
+const app = express();
+
+app.use(express.static('public'));
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: 'uploads/',
+    filename: (req, file, cb) => {
+      const filetype = file.originalname.split('.').pop();
+      const id = Math.round(Math.random() * 1e9);
+      const filename = `${id}.${filetype}`;
+      cb(null, filename);
+    },
+  }),
+  limits: { fileSize: 64000 },
+});
+
+app.post('/upload', upload.single('file'), (req, res) => {
+  if (req.file) {
+    res.send({
+      message: 'Uploaded succeeded',
+      file: req.file.filename,
+    });
+  } else {
+    res.status(400).send({ message: 'Upload failed' });
+  }
+});
+
+app.get('/file/:filename', (req, res) => {
+  res.sendFile(__dirname + `/uploads/${req.params.filename}`);
+});
+
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    res.status(413).send({ message: err.message });
+  } else {
+    res.status(500).send({ message: err.message });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('Server is running on port 3000');
+});
+```
+Where you store your files
+You should take serious thought about where you store your files. Putting files on your server is not a very good production level solution for the following reasons.
+
+You only have so much available space. Your server only has 8 GB by default. Once you use up all your space then your server will fail to operate correctly and you may need to rebuild your server.
+In a production system, servers are transient and are often replaced as new versions are released, or capacity requirements change. That means you will lose any state that you store on your server.
+The server storage is not usually backed up. If the server fails for any reason, you will lose your customer's data.
+If you have multiple application servers then you can't assume that the server you uploaded the data to is going to be the one you request a download from.
+Instead you want to use a dedicated storage service that has durability guarantees, is not tied to your compute capacity, and can be accessed by multiple application servers.
+
+
+## Storage services
+
+Web applications commonly need to store files associated with the application or the users of the application. This includes files such as images, user uploads, documents, and movies. Files usually have an ID, some metadata, and the bytes representing the file itself. These can be stored using a database service, but usually that is overkill and a simpler solution will be cheaper.
+
+It might be tempting to store files directly on your server. This is usually a bad idea for several reasons.
+
+Your server has limited drive space. If you server runs out of drive space your entire application will fail.
+You should consider your server as being ephemeral, or temporary. It can be thrown away and replaced by a copy at any time. If you start storing files on the server, then your server has state that cannot be easily replaced.
+You need backup copies of your application and user files. If you only have one copy of your files on your server, then they will disappear when your server disappears, and you must always assume that your server will disappear.
+Instead you want to use a storage service that is specifically designed to support production storage and delivery of files.
+
+AWS S3
+There are many such solutions out there, but one of the most popular ones is AWS S3. S3 provides the following advantages:
+
+It has unlimited capacity
+You only pay for the storage that you use
+It is optimized for global access
+It keeps multiple redundant copies of every file
+You can version the files
+It is performant
+It supports metadata tags
+You can make your files publicly available directly from S3
+You can keep your files private and only accessible to your application
+In this course we will not be using any storage services for the Simon project. If, however, you want to use S3 as the storage service for your Startup application, then you need to learn how to use the AWS SDK. You can find detailed information about using AWS S3 with Node.js on the AWS website. Generally, the steps you need to take include:
+
+Creating a S3 bucket to store your data in.
+Getting credentials so that your application can access the bucket.
+Using the credentials in your application.
+Using the SDK to write, list, read, and delete files from the bucket.
+⚠ Make sure that you do not include your credentials in your code. If you check your credentials into your GitHub repository they will immediately be stolen and used by hackers to take over your AWS account. This may result in significant monetary damage to you.
+
+## Data services
+
+Web applications commonly need to store application and user data persistently. The data can be many things, but it is usually a representation of complex interrelated objects. This includes things like a user profile, organizational structure, game play information, usage history, billing information, peer relationship, library catalog, and so forth.
+
+Data service
+
+Historically, SQL databases have served as the general purpose data service solution, but starting around 2010, specialty data services that better support document, graph, JSON, time, sequence, and key-value pair data began to take significant roles in applications from major companies. These data services are often called NoSQL solutions because they do not use the general purpose relational database paradigms popularized by SQL databases. However, they all have very different underlying data structures, strengths, and weaknesses. That means that you should not simply split all of the possible data services into two narrowly defined boxes, SQL and NoSQL, when you are considering the right data service for your application.
+
+Here is a list of some of the popular data services that are available.
+```js
+Service	Specialty
+MySQL	Relational queries
+Redis	Memory cached objects
+ElasticSearch	Ranked free text
+MongoDB	JSON objects
+DynamoDB	Key value pairs
+Neo4J	Graph based data
+InfluxDB	Time series data
+MongoDB
+MongoDB logo
+```
+
+For the projects in this course that require data services, we will use MongoDB. Mongo increases developer productivity by using JSON objects as its core data model. This makes it easy to have an application that uses JSON from the top to the bottom of the technology stack. A mongo database is made up of one or more collections that each contain JSON documents. You can think of a collection as a large array of JavaScript objects, each with a unique ID. The following is a sample of a collection of houses that are for rent.
+```js
+[
+  {
+    _id: '62300f5316f7f58839c811de',
+    name: 'Lovely Loft',
+    summary: 'A charming loft in Paris',
+    beds: 1,
+    last_review: {
+      $date: '2022-03-15T04:06:17.766Z',
+    },
+    price: 3000,
+  },
+  {
+    _id: '623010b97f1fed0a2df311f8',
+    name: 'Infinite Views',
+    summary: 'Modern home with infinite views from the infinity pool',
+    property_type: 'House',
+    beds: 5,
+    price: 250,
+  },
+];
+```
+Unlike relational databases that require a rigid table definition where each column must be strictly typed and defined beforehand, Mongo has no strict schema requirements. Each document in the collection usually follows a similar schema, but each document may have specialized fields that are present, and common fields that are missing. This allows the schema of a collection to morph organically as the data model of the application evolves. To add a new field to a Mongo collection you just insert the field into the documents as desired. If the field is not present, or has a different type in some documents, then the document simply doesn't match the query criteria when the field is referenced.
+
+The query syntax for Mongo also follow a JavaScript-inspired flavor. Consider the following queries on the houses for rent collection that was shown above.
+```js
+// find all houses
+db.house.find();
+
+// find houses with two or more bedrooms
+db.house.find({ beds: { $gte: 2 } });
+
+// find houses that are available with less than three beds
+db.house.find({ status: 'available', beds: { $lt: 3 } });
+
+// find houses with either less than three beds or less than $1000 a night
+db.house.find({ $or: [(beds: { $lt: 3 }), (price: { $lt: 1000 })] });
+
+// find houses with the text 'modern' or 'beach' in the summary
+db.house.find({ summary: /(modern|beach)/i });
+Using MongoDB in your application
+```
+📖 Deeper dive reading: MongoDB tutorial
+
+The first step to using Mongo in your application is to install the mongodb package using NPM.
+```js
+➜ npm install mongodb
+With that done, you then use the MongoClient object to make a client connection to the database server. This requires a username, password, and the hostname of the database server.
+
+const { MongoClient } = require('mongodb');
+
+const userName = 'holowaychuk';
+const password = 'express';
+const hostname = 'mongodb.com';
+
+const url = `mongodb+srv://${userName}:${password}@${hostname}`;
+
+const client = new MongoClient(url);
+```
+With the client connection you can then get a database object and from that a collection object. The collection object allows you to insert, and query for, documents. You do not have to do anything special to insert a JavaScript object as a Mongo document. You just call the insertOne function on the collection object and pass it the JavaScript object. When you insert a document, if the database or collection does not exist, Mongo will automatically create them for you. When the document is inserted into the collection it will automatically be assigned a unique ID.
+```js
+const collection = client.db('rental').collection('house');
+
+const house = {
+  name: 'Beachfront views',
+  summary: 'From your bedroom to the beach, no shoes required',
+  property_type: 'Condo',
+  beds: 1,
+};
+await collection.insertOne(house);
+```
+To query for documents you use the find function on the collection object. Note that the find function is asynchronous and so we use the await keyword to wait for the promise to resolve before we write them out to the console.
+```js
+const cursor = collection.find();
+const rentals = await cursor.toArray();
+rentals.forEach((i) => console.log(i));
+```
+If you do not supply any parameters to the find function then it will return all documents in the collection. In this case we only get back the single document that we previously inserted. Notice that the automatically generated ID is returned with the document.
+
+Output
+```js
+[
+  {
+    _id: new ObjectId('639a96398f8de594e198fc13'),
+    name: 'Beachfront views',
+    summary: 'From your bedroom to the beach, no shoes required',
+    property_type: 'Condo',
+    beds: 1,
+  },
+];
+```
+You can provide a query and options to the find function. In the example below we query for a property_type of Condo that has less than two bedrooms. We also specify the options to sort by descending price, and limit our results to the first 10 documents.
+```js
+const query = { property_type: 'Condo', beds: { $lt: 2 } };
+
+const options = {
+  sort: { price: -1 },
+  limit: 10,
+};
+
+const cursor = collection.find(query, options);
+const rentals = await cursor.toArray();
+rentals.forEach((i) => console.log(i));
+```
+The query matches the document that we previously inserted and so we get the same result as before.
+
+There is a lot more functionality that MongoDB provides, but this is enough to get you started. If you are interested you can explore the tutorials on their website.
+
+Managed services
+Historically each application development team would have developers that managed the data service. Those developers would acquire hardware, install the database software, monitor the memory, cpu, and disk space, control the data schema, and handle migrations and upgrades. Much of this work has now moved to services that are hosted and managed by a 3rd party. This relieves the development team from much of the day-to-day maintenance. The team can instead focus more on the application and less on the infrastructure. With a managed data service you simply supply the data and the service grows, or shrinks, to support the desired capacity and performance criteria.
+
+MongoDB Atlas
+All of the major cloud providers offer multiple data services. For this class we will use the data service provided by MongoDB called Atlas. No credit card or payment is required to set up and use Atlas, as long as you stick to the shared cluster environment.
+
+Mongo sign upMongoDB Atlas sign up
+
+⚠ This video tutorial will step you through the process of creating your account and setting up your database. You really want to watch this video. Note that some of the Atlas website interface may be slightly different, but the basic concepts should all be there in some shape or form. The main steps you need to take are:
+
+Create your account.
+
+Create a database cluster.
+
+Create your root database user credentials. Remember these for later use.
+
+⚠ Set network access to your database to be available from anywhere.
+
+Atlas IP Anywhere
+
+Copy the connection string and use the information in your code.
+
+Save the connection and credential information in your production and development environments as instructed above.
+
+You can always find the connection string to your Atlas cluster by pressing the Connect button from your Database > DataServices view.
+
+Atlas connection string
+
+Keeping your keys out of your code
+You need to protect your credentials for connecting to your Mongo database. One common mistake is to check them into your code and then post it to a public GitHub repository. Instead you can load your credentials when the application executes. One common way to do that is to have a JSON configuration file that contains the credentials that you dynamically load into the JavaScript that makes the database connection. You then use the configuration file in your development environment and deploy it to your production environment, but you never commit it to GitHub.
+
+In order to accomplish this do the following:
+
+Create a file named dbConfig.json in the same directory as the database JavaScript (e.g. database.js) that you use to make database requests.
+
+Insert your Mongo DB credentials into the dbConfig.json file in JSON format using the following example:
+```js
+{
+  "hostname": "cs260.abcdefg.mongodb.net",
+  "userName": "myMongoUserName",
+  "password": "toomanysecrets"
+}
+```
+Import the dbConfig.json content into your database.js file using a Node.js require statement and use the data that it represents to create the connection URL.
+```js
+const config = require('./dbConfig.json');
+const url = `mongodb+srv://${config.userName}:${config.password}@${config.hostname}`;
+```
+⚠ Make sure you include dbConfig.json in your .gitignore file so that it does not get pushed up to GitHub.
+
+Testing the connection on startup
+It is nice to know that your connection string is correct before your application attempts to access any data. We can do that when the application starts by making an asynchronous request to ping the database. If that fails then either the connection string is incorrect, the credentials are invalid, or the network is not working. The following is an example of testing the connection.
+```js
+const config = require('./dbConfig.json');
+
+const url = `mongodb+srv://${config.userName}:${config.password}@${config.hostname}`;
+const client = new MongoClient(url);
+const db = client.db('rental');
+
+(async function testConnection() {
+  await client.connect();
+  await db.command({ ping: 1 });
+})().catch((ex) => {
+  console.log(`Unable to connect to database with ${url} because ${ex.message}`);
+  process.exit(1);
+});
+```
+If your server is not starting, then check your logs for this exception being thrown.
+
+Using Mongo from your code
+With that all done, you should be good to use Atlas from both your development and production environments. You can test that things are working correctly with the following example.
+```js
+const { MongoClient } = require('mongodb');
+const config = require('./dbConfig.json');
+
+async function main() {
+  // Connect to the database cluster
+  const url = `mongodb+srv://${config.userName}:${config.password}@${config.hostname}`;
+  const client = new MongoClient(url);
+  const db = client.db('rental');
+  const collection = db.collection('house');
+
+  // Test that you can connect to the database
+  (async function testConnection() {
+    await client.connect();
+    await db.command({ ping: 1 });
+  })().catch((ex) => {
+    console.log(`Unable to connect to database with ${url} because ${ex.message}`);
+    process.exit(1);
+  });
+
+  // Insert a document
+  const house = {
+    name: 'Beachfront views',
+    summary: 'From your bedroom to the beach, no shoes required',
+    property_type: 'Condo',
+    beds: 1,
+  };
+  await collection.insertOne(house);
+
+  // Query the documents
+  const query = { property_type: 'Condo', beds: { $lt: 2 } };
+  const options = {
+    sort: { score: -1 },
+    limit: 10,
+  };
+
+  const cursor = collection.find(query, options);
+  const rentals = await cursor.toArray();
+  rentals.forEach((i) => console.log(i));
+}
+
+main().catch(console.error);
+To execute the above example, do the following:
+
+Create a directory called mongoTest
+Save the above content to a file named index.js
+Create a file named dbConfig.json that contains your database credentials
+Run npm init -y
+Run npm install mongodb
+Run node index.js.
+This should output something like the following if everything is working correctly.
+
+{
+_id: new ObjectId("639b51b74ef1e953b884ca5b"),
+name: 'Beachfront views',
+summary: 'From your bedroom to the beach, no shoes required',
+property_type: 'Condo',
+beds: 1
+}
+```
+
+
