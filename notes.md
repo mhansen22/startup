@@ -7828,4 +7828,283 @@ const list = React.createElement(
 ```
 The React.createElement function will then generate DOM elements and monitor the data they represent for changes. When a change is discovered, React will trigger dependent changes.
 
+## Components
+
+📖 Recommended reading: React.dev - Your First Component
+
+React components allow you to modularize the functionality of your application. This allows the underlying code to directly represent the components that a user interacts with. It also enables code reuse as common application components often show up repeatedly.
+
+The render function
+One of the primary purposes of a component is to generate the user interface. This is done with the component's render function. Whatever is returned from the render function is inserted into the component HTML element.
+
+As a simple example, a JSX file containing a React component element named Demo would cause React to load the Demo component, call the render function, and insert the result into the place of the Demo element.
+
+JSX
+```html
+<div>
+  Component: <Demo />
+</div>
+```
+Notice that Demo is not a valid HTML element. The transpiler will replace this tag with the resulting rendered HTML.
+
+React component
+```js
+function Demo() {
+  const who = 'world';
+  return <b>Hello {who}</b>;
+}
+```
+Resulting HTML
+```html
+<div>Component: <b>Hello world</b></div>
+```
+Properties
+React components also allow you to pass information to them in the form of element properties. The component receives the properties in its constructor and then can display them when it renders.
+
+JSX
+```html
+<div>Component: <Demo who="Walke" /><div>
+```
+React component
+```js
+function Demo(props) {
+  return <b>Hello {props.who}</b>;
+}
+```js
+Resulting HTML
+```html
+<div>Component: <b>Hello Walke</b></div>
+```
+State
+In addition to properties, a component can have internal state. Component state is created by calling the React.useState hook function. The useState function returns a variable that contains the current state and a function to update the state. The following example creates a state variable called clicked and toggles the click state in the updateClicked function that gets called when the paragraph text is clicked.
+```js
+const Clicker = () => {
+  const [clicked, updateClicked] = React.useState(false);
+
+  const onClicked = (e) => {
+    updateClicked(!clicked);
+  };
+
+  return <p onClick={(e) => onClicked(e)}>clicked: {`${clicked}`}</p>;
+};
+
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<Clicker />);
+```
+You should note that you can use JSX even without a function. A simple variable representing JSX will work anyplace you would otherwise provide a component.
+```js
+const hello = <div>Hello</div>;
+
+ReactDOM.render(hello, document.getElementById('root'));
+```
+Class style components
+In addition to the preferred function style components demonstrated above, React also supports class style components. However, you should note that the React team is moving away from the class style representation, and for that reason you should probably not use it. With that said, you are likely to see class style components and so you should be aware of the syntax. Below is the equivalent class style component for the Clicker component that we created above.
+
+The major difference is that properties are loaded on the constructor and state is set using a setState function on the component object.
+```js
+class Clicker extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      clicked: false,
+    };
+  }
+  onClicked() {
+    this.setState({
+      clicked: !this.state.clicked,
+    });
+  }
+  render() {
+    return <p onClick={(e) => this.onClicked(e)}>clicked: {`${this.state.clicked}`}</p>;
+  }
+}
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<Clicker />);
+```
+Reactivity
+A component's properties and state are used by the React framework to determine the reactivity of the interface. Reactivity controls how a component reacts to actions taken by the user or events that happen within the application. Whenever a component's state or properties change, the render function for the component and all of its dependent component render functions are called.
+
+## Toolchains
+
+As web programming becomes more and more complex it became necessary to abstract away some of that complexity with a series of tools. Some common functional pieces in a web application tool chain include:
+
+Code repository - Stores code in a shared, versioned location.
+Linter - Removes, or warns of, non-idiomatic code usage.
+Prettier - Formats code according to a shared standard.
+Transpiler - Compiles code into a different format. For example, from JSX to JavaScript, TypeScript to JavaScript, or SCSS to CSS.
+Polyfill - Generates backward compatible code for supporting old browser versions that do not support the latest standards.
+Bundler - Packages code into bundles for delivery to the browser. This enables compatibility (for example with ES6 module support), or performance (with lazy loading).
+Minifier - Removes whitespace and renames variables in order to make code smaller and more efficient to deploy.
+Testing - Automated tests at multiple levels to ensure correctness.
+Deployment - Automated packaging and delivery of code from the development environment to the production environment.
+The toolchain that we use for our React project consists of GitHub as the code repository, Vite for JSX, TS, development and debugging support, ESBuild for converting to ES6 modules and transpiling (with Babel underneath), Rollup for bundling and tree shaking, PostCSS for CSS transpiling, and finally a simple bash script (deployReact.sh) for deployment.
+
+You don't have to fully understand what each of these pieces in the chain are accomplishing, but the more you know about them the more you can optimize your development efforts.
+
+In the following instruction we will show you how to use Vite to create a simple web application using the tools mentioned above. We will then demonstrate how to convert your startup into a modern web application by converting Simon to use Vite and React.
+
+## Vite
+
+📖 Deeper dive reading: Vite
+
+Now that we have covered the basics of React, we want to extend our usage to include a full web framework toolchain that allows us to use JSX, minification, polyfills, and bundling for our Simon and startup applications. One common way for configuring your project to take advantage of these technologies is to use a Command Line Interface (CLI) to initially set up a web application. Using a CLI saves you the trouble of configuring the toolchain parameters and gets you quickly started with a default application.
+
+For our toolchain we are going to use Vite. Vite bundles your code quickly, has great debugging support, and allows you to easily support JSX, TypeScript, and different CSS flavors. To get started with Vite, let's first build a simple web application. Later we will convert Simon over to React using Vite. This will teach you what you need to know in order to move your startup to React.
+
+To create a new React-based web application using Vite, open your console and run the following commands:
+
+npm create vite@latest demoVite -- --template react
+cd demoVite
+npm install
+npm run dev
+This will create a new web application in the demoVite directory, download the required 3rd party packages, and start up the application using a local HTTP debugging server. You can tell Vite to open your browser to the URL that is hosting your application by pressing o, or press h to see all of the Vite CLI options.
+
+Vite Demo
+
+Congratulations! You have just created your first React-enabled web application.
+
+Once you have played around with the application in your browser, you can return to your console and stop Vite from hosting the application by pressing q.
+
+Generated project
+Now, let's explore the application files that Vite created. From the console, use VS Code (code .) to open the project directory and take a look at the files.
+```js
+Directory	File	Purpose
+./		
+index.html	Primary page for the application. This is the starting point to load all of the JSX components beginning with main.jsx.
+package.json	NPM definition for package dependencies and script commands. This is what maps npm run dev to actually start up Vite.
+package-lock.json	Version constraints for included packages (do not edit this).
+vite.config.js	Configuration setting for Vite. Specifically this sets up React for development.
+./public		
+vite.svg	Vite logo for use as favicon and for display in the app.
+./src		
+main.jsx	Entry point for code execution. This simply loads the App component found in App.jsx.
+index.css	CSS for the entire application.
+App.jsx	JSX for top level application component. This displays the logs and implements the click counter.
+App.css	CSS for the top level application component.
+./src/assets		
+react.svg	React logo for display in the app.
+```
+The main files in the application are index.html, main.jsx, and App.jsx. The browser loads index.html which provides the HTML element (#root) that the React application will be injected into. It also includes the script element to load main.jsx.
+
+main.jsx creates the React application by associating the #root element with the App component found in App.jsx. This causes all of the component render functions to execute and the generated HTML, CSS, and JavaScript to be executed in index.html.
+
+File relationship
+
+JSX vs JS
+The Vite CLI uses the .jsx extension for JSX files instead of the JavaScript .js extension. The Babel transpiler will work with either one, but some editor tools will work differently based upon the extension. For this reason, you should prefer .jsx for files that contain JSX. The developers at AirBNB had an interesting conversation on this topic that you might browse if you would like to consider the differing opinions on this subject.
+
+Building a production release
+When you execute npm run dev you are bundling the code to a temporary directory that the Vite debug HTTP server loads from. When you want to bundle your application so that you can deploy to a production environment you need to run npm run build. This executes the build script found in your package.json and invokes the Vite CLI. vite build transpiles, minifies, injects the proper JavaScript, and then outputs everything to a deployment-ready version contained in a distribution subdirectory named dist.
+```js
+➜  npm run build
+
+> demovite@0.0.0 build
+> vite build
+
+vite v4.3.7 building for production...
+✓ 34 modules transformed.
+dist/index.html                   0.45 kB │ gzip:  0.30 kB
+dist/assets/react-35ef61ed.svg    4.13 kB │ gzip:  2.14 kB
+dist/assets/index-51439b3f.css    1.42 kB │ gzip:  0.74 kB
+dist/assets/index-58d24859.js   143.42 kB │ gzip: 46.13 kB
+✓ built in 382ms
+```
+Deploying a production release
+The deployment script for Simon React (deployReact.sh) creates a production distribution by calling npm run build and then copying the resulting dist directory to your production server.
+
+Take some time to build a production release by running npm run build. Then examine what Vite actually builds by examining the dist directory. For example, if you look at the dist/assets directory you will see the bundled and minified JavaScript and CSS files.
+
+
+## Router
+
+🔑 Required reading: React Router DOM Tutorial
+
+A web framework router provides essential functionality for single-page applications. With a multiple-webpage application the headers, footers, navigation, and common components must be either duplicated in each HTML page, or injected before the server sends the page to the browser. With a single page application, the browser only loads one HTML page and then JavaScript is used to manipulate the DOM and give it the appearance of multiple pages. The router defines the routes a user can take through the application, and automatically manipulates the DOM to display the appropriate framework components.
+
+React does not have a standard router package, and there are many that you can choose from. We will use react-router-dom Version 6. The simplified routing functionality of React-router-dom derives from the project react-router for its core functionality. Do not confuse the two, or versions of react-router-dom before version 6, when reading tutorials and documentation.
+
+React Router
+
+A basic implementation of the router consists of a BrowserRouter component that encapsulates the entire application and controls the routing action. The Link, or NavLink, component captures user navigation events and modifies what is rendered by the Routes component by matching up the to and path attributes.
+```html
+// Inject the router into the application root DOM element
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  // BrowserRouter component that controls what is rendered
+  // NavLink component captures user navigation requests
+  // Routes component defines what component is routed to
+  <BrowserRouter>
+    <div className='app'>
+      <nav>
+        <NavLink to='/'>Home</Link>
+        <NavLink to='/about'>About</Link>
+        <NavLink to='/users'>Users</Link>
+      </nav>
+
+      <main>
+        <Routes>
+          <Route path='/' element={<Home />} exact />
+          <Route path='/about' element={<About />} />
+          <Route path='/users' element={<Users />} />
+          <Route path='*' element={<Navigate to='/' replace />} />
+        </Routes>
+      </main>
+    </div>
+  </BrowserRouter>
+);
+```
+
+## Reactivity
+
+Making the UI react to changes in user input or data, is one of the architectural foundations of React. React enables reactivity with three major pieces of a React component: props, state, and render.
+
+When a component's JSX is rendered, React parses the JSX and creates a list of any references to the component's state or prop objects. React then monitors those objects and if it detects that they have changed it will call the component's render function so that the impact of the change is visualized.
+
+The following example contains two components: a parent <Survey/> component and a child <Question/> component. The Survey has a state named color. The Question has a property named answer. The Survey passes its color state to the Question as a property. This means that any change to the Survey's color will also be reflected in the Question's color. This is a powerful means for a parent to control a child's functionality.
+
+Be careful about your assumptions of when state is updated. Just because you called updateState does not mean that you can access the updated state on the next line of code. The update happens asynchronously, and therefore you never really know when it is going to happen. You only know that it will eventually happen.
+```js
+const Survey = () => {
+  const [color, updateColor] = React.useState('#737AB0');
+
+  // When the color changes update the state
+  const onChange = (e) => {
+    updateColor(e.target.value);
+  };
+```
+```html
+  return (
+    <div>
+      <h1>Survey</h1>
+
+      {/* Pass the Survey color  as a parameter to the Question.
+          When the color changes the Question parameter will also be updated and rendered. */}
+      <Question answer={color} />
+
+      <p>
+        <span>Pick a color: </span>
+        {/* Set the Survey color state as a the value of the color picker.
+            When the color changes, the value will also be updated and rendered. */}
+        <input type='color' onChange={(e) => onChange(e)} value={color} />
+      </p>
+    </div>
+  );
+};
+
+// The Question component
+const Question = ({ answer }) => {
+  return (
+    <div>
+      {/* Answer rerendered whenever the parameter changes */}
+      <p>Your answer: {answer}</p>
+    </div>
+  );
+};
+
+ReactDOM.render(<Survey />, document.getElementById('root'));
+
+```
+
 ## 
