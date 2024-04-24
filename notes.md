@@ -8107,4 +8107,1798 @@ ReactDOM.render(<Survey />, document.getElementById('root'));
 
 ```
 
-## 
+## Reactivity
+
+Making the UI react to changes in user input or data, is one of the architectural foundations of React. React enables reactivity with three major pieces of a React component: props, state, and render.
+
+When a component's JSX is rendered, React parses the JSX and creates a list of any references to the component's state or prop objects. React then monitors those objects and if it detects that they have changed it will call the component's render function so that the impact of the change is visualized.
+
+The following example contains two components: a parent <Survey/> component and a child <Question/> component. The Survey has a state named color. The Question has a property named answer. The Survey passes its color state to the Question as a property. This means that any change to the Survey's color will also be reflected in the Question's color. This is a powerful means for a parent to control a child's functionality.
+
+Be careful about your assumptions of when state is updated. Just because you called updateState does not mean that you can access the updated state on the next line of code. The update happens asynchronously, and therefore you never really know when it is going to happen. You only know that it will eventually happen.
+```js
+const Survey = () => {
+  const [color, updateColor] = React.useState('#737AB0');
+
+  // When the color changes update the state
+  const onChange = (e) => {
+    updateColor(e.target.value);
+  };
+
+  return (
+    <div>
+      <h1>Survey</h1>
+
+      {/* Pass the Survey color  as a parameter to the Question.
+          When the color changes the Question parameter will also be updated and rendered. */}
+      <Question answer={color} />
+
+      <p>
+        <span>Pick a color: </span>
+        {/* Set the Survey color state as a the value of the color picker.
+            When the color changes, the value will also be updated and rendered. */}
+        <input type='color' onChange={(e) => onChange(e)} value={color} />
+      </p>
+    </div>
+  );
+};
+
+// The Question component
+const Question = ({ answer }) => {
+  return (
+    <div>
+      {/* Answer rerendered whenever the parameter changes */}
+      <p>Your answer: {answer}</p>
+    </div>
+  );
+};
+```
+ReactDOM.render(<Survey />, document.getElementById('root'));
+☑ Assignment
+Create a fork of this CodePen and experiment. Try changing the input from using the color and radio button, to using an edit box that reactively displays the text as you type.
+
+When you are done submit your CodePen URL to the Canvas assignment.
+
+Don't forget to update your GitHub startup repository notes.md with all of the things you learned and want to remember.
+
+🧧 Possible solution
+If you get stuck here is a possible solution.
+```js
+const Survey = () => {
+  const [text, updateText] = React.useState('');
+
+  const onChange = (e) => {
+    updateText(e.target.value);
+  };
+  return (
+    <div>
+      <h1>Survey</h1>
+      <Question answer={text} />
+
+      <p>
+        <span>Type some text: </span>
+        <input
+          type='text'
+          onChange={(e) => onChange(e)}
+          placeholder='type here'
+        />
+      </p>
+    </div>
+  );
+};
+
+const Question = ({ answer }) => {
+  return (
+    <div>
+      <p>You typed: {answer}</p>
+    </div>
+  );
+};
+```
+
+## React hooks
+
+📖 Recommended reading: Reactjs.org - Hooks Overview
+
+React hooks allow React function style components to be able to do everything that a class style component can do and more. Additionally, as new features are added to React they are including them as hooks. This makes function style components the preferred way of doing things in React. You have already seen one use of hooks to declare and update state in a function component with the useState hook.
+```js
+function Clicker({initialCount}) {
+  const [count, updateCount] = React.useState(initialCount);
+  return <div onClick={() => updateCount(count + 1)}>Click count: {count}</div>;
+}
+
+ReactDOM.render(<Clicker initialCount={3} />, document.getElementById('root'));
+```
+useEffect hook
+The useEffect hook allows you to represent lifecycle events. For example, if you want to run a function every time the component completes rendering, you could do the following.
+```js
+function UseEffectHookDemo() {
+  React.useEffect(() => {
+    console.log('rendered');
+  });
+
+  return <div>useEffectExample</div>;
+}
+
+ReactDOM.render(<UseEffectHookDemo />, document.getElementById('root'));
+```
+You can also take action when the component cleans up by returning a cleanup function from the function registered with useEffect. In the following example, every time the component is clicked the state changes and so the component is rerendered. This causes both the cleanup function to be called in addition to the hook function. If the function was not rerendered then only the cleanup function would be called.
+```js
+function UseEffectHookDemo() {
+  const [count, updateCount] = React.useState(0);
+  React.useEffect(() => {
+    console.log('rendered');
+
+    return function cleanup() {
+      console.log('cleanup');
+    };
+  });
+
+  return <div onClick={() => updateCount(count + 1)}>useEffectExample {count}</div>;
+}
+```
+ReactDOM.render(<UseEffectHookDemo />, document.getElementById('root'));
+This is useful when you want to create side effects for things such as tracking when a component is displayed or hidden, or creating and disposing of resources.
+
+Hook dependencies
+You can control what triggers a useEffect hook by specifying its dependencies. In the following example we have two state variables, but we only want the useEffect hook to be called when the component is initially called and when the first variable is clicked. To accomplish this you pass an array of dependencies as a second parameter to the useEffect call.
+```js
+function UseEffectHookDemo() {
+  const [count1, updateCount1] = React.useState(0);
+  const [count2, updateCount2] = React.useState(0);
+
+  React.useEffect(() => {
+    console.log(`count1 effect triggered ${count1}`);
+  }, [count1]);
+
+  return (
+    <ol>
+      <li onClick={() => updateCount1(count1 + 1)}>Item 1 - {count1}</li>
+      <li onClick={() => updateCount2(count2 + 1)}>Item 2 - {count2}</li>
+    </ol>
+  );
+}
+```
+ReactDOM.render(<UseEffectHookDemo />, document.getElementById('root'));
+If you specify an empty array [] as the hook dependency then it is only called when the component is first rendered.
+
+Note that hooks can only be used in function style components and must be called at the top scope of the function. That means a hook cannot be called inside of a loop or conditional. This restriction ensures that hooks are always called in the same order when a component is rendered.
+
+## Simon React
+
+🎥 Instruction video: Simon React
+
+Simon
+
+This deliverable demonstrates using React as a web framework and Vite as your frontend tooling. This helps with tasks such as building modular components, providing reactive UI elements, supporting sessions, lazy loading, and reducing (minifying) the size of your application.
+
+As part of the move to React, we convert Simon from a multi-page application to a single-page application. In a single-page application, the browser only loads a single HTML file (index.html), and then we use JavaScript to interactively change the rendered content and components. This is a significant architectural shift to the application and will require you to reorganize your code to fit the single-page, component driven, model.
+
+Steps to convert Simon to React
+The following section discusses the general steps taken to convert the Simon application from a simple HTML/CSS/JavaScript application to a React application. You will need to take similar steps for your startup project, and so it is important to understand what is happening at each step of the conversion process. You don't necessarily have to go through this process with the Simon demonstration application, but it is a safe place to try since you have both the starting version (simon-websocket) and the ending version (simon-react) to reference.
+
+We begin by introducing vite, our frontend tooling. The HTML, CSS, and JavaScript is then reworked into React components. The React components are then reworked to take advantage of functionality that React provides. This includes function style components, modularization, reactive interactions, and a React representation of Bootstrap.
+
+Here is a complete list of all the steps involved to convert Simon to a React application. When you port your startup to React you will want to commit your changes as you complete each step in the process.
+```js
+Clone the simon-websocket repository
+Reorganize the code
+Install and configure Vite
+Convert to React Bootstrap
+Enable React
+Create app component
+Create view components
+Create the router
+Convert scores component
+Convert other components
+To give you a picture of where we will end up after porting to React, the final Simon project structure looks like the following.
+
+├─ vite.config.js              # Config for Vite dev debugging
+├─ deployReact.sh              # React specific deployment
+├─ index.html                  # Single HTML file for the App
+├─ index.jsx                   # Loads the top level component
+├─ package.json                # Defines dependent modules
+├─ public                      # Static assets used in the app
+│   ├─ button-bottom-left.mp3
+│   ├─ button-bottom-right.mp3
+│   ├─ button-top-left.mp3
+│   ├─ button-top-right.mp3
+│   ├─ error.mp3
+│   └─ favicon.ico
+├─ service                     # Backend service code
+│   ├─ database.js
+│   ├─ dbConfig.json
+│   ├─ index.js
+│   ├─ package-lock.json
+│   ├─ package.json
+│   └─ peerProxy.js
+└─ src                         # Frontend React code
+    ├─ app.jsx                 # Top level component
+    ├─ app.css
+    ├─ about                   # About component
+    │   ├─ about.css
+    │   └─ about.jsx
+    ├─ login                   # Login component
+    │   ├─ login.jsx           # Renders auth sub-components
+    │   ├─ authState.js        # Enum for auth state
+    │   ├─ unauthenticated.jsx # Renders if unauthenticated
+    │   ├─ authenticated.jsx   # Renders if authenticated
+    │   ├─ authenticated.css
+    │   └─ messageDialog.jsx
+    ├─ play                    # Game play component
+    │   ├─ delay.js
+    │   ├─ gameNotifier.js
+    │   ├─ play.jsx
+    │   ├─ players.css
+    │   ├─ players.jsx
+    │   ├─ simonButton.jsx
+    │   ├─ simonGame.css
+    │   └─ simonGame.jsx
+    └─ scores                 # Scores component
+        ├─ scores.css
+        └─ scores.jsx
+```
+Reorganize the code
+Because we are hosting both the Simon React application and the Simon service web service in the same project, we need to put them each in separate directories. We want the service code in a service directory and the React code in the src directory. To accomplish this, first delete the node_modules directory from the simon directory. Then move the service code (package.json, package-lock.json, index.js, database.js, peerProxy.js, and dbConfig.json) into a subdirectory named service. Then run npm install in the service directory in order to get the NPM packages for the service.
+
+Once you move the service to the service directory, you can test that the service is still working by running node index.js from a console window in the service directory, or by pressing F5 in VS Code. Try it out and make sure you can hit the service endpoints using curl.
+```js
+➜  curl 'localhost:3000/api/user/joe'
+
+{"msg":"Unknown"}
+```
+Next, we want to move the existing UI code to a location where Vite expects to find it. To do this we move all of the files out of public into the project root directory. This will allow us to run our existing code under Vite to make sure everything is working. Once we start porting over to React, we will convert each of these files to React components located in a directory called src. From the root project directory run:
+```js
+mv public/* .
+rm -r public
+Install and configure Vite
+While in your project root directory, install Vite as a development dependency by running:
+
+npm init -y
+npm install vite@latest -D
+Then insert/replace the scripts found in the newly created package.json file located in your project root directory to include the commands for running Vite.
+
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+```
+Configuring Vite for debugging
+When running in production, the Simon web service running under Node.js on port 3000 serves up the Simon React application code when the browser requests index.html. This is the same as we did with previous Simon deliverables. The service pulls those files from the application's static HTML, CSS, and JavaScript files located in the public directory that we set up when we build the production distribution package.
+
+Setting up React ports
+
+However, when the application is running in debug mode in your development environment, we actually need two HTTP servers running: one for the Node.js backend HTTP server, and one for the Vite frontend HTTP server. This allows us to develop and debug both our backend and our frontend while viewing the results in the browser.
+
+By default, Vite uses port 5173 when running in development mode. Vite starts up the debugging HTTP server when we run npm run dev. That means the browser is going to send network requests to port 5173. We can configure the Vite HTTP server to proxy service HTTP and WebSocket requests to the Node.js HTTP server by providing a configuration file named vite.config.js with the following contents.
+```js
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+      '/ws': {
+        target: 'ws://localhost:3000',
+        ws: true,
+      },
+    },
+  },
+});
+```
+When running in this configuration, the network requests now flow as shown below. Without this you will not be able to debug your React application in your development environment.
+
+Setting up React ports
+
+With our server running, and our files in the place where Vite expects them, we can test that everything still works. You can start Vite in dev mode with the command npm run dev, followed by pressing the o key to open the application in the browser. When you reach this point with your startup, make sure that you commit your changes.
+
+Convert to React Bootstrap
+There is an NPM package called React Bootstrap that wraps the Bootstrap CSS framework in React components. This allows you to treat the Bootstrap widgets, such as Button and Modal, as a React component instead of just imported CSS and JavaScript.
+
+To use the React version of Bootstrap, import the NPM package.
+
+npm install bootstrap react-bootstrap
+Now, in the components where you want to refer to the Bootstrap styles, you can import the Bootstrap style sheet from the imported NPM package just like you would other CSS files.
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+To use a React Bootstrap component, you would import and reference the specific component you want to use. Here is an example of using the Button component.
+```js
+import Button from 'react-bootstrap/Button';
+
+export function NavButton({ text, url }) {
+  const navigate = useNavigate();
+  return (
+    <Button variant='primary' onClick={() => navigate({ url })}>
+      {text}
+    </Button>
+  );
+}
+```
+For Simon we converted the modal dialog and button implementations to use the React Bootstrap components.
+
+Enabling React
+We now have everything set up to start using React for the application. To make this happen, we need to install the React components for the basic functionality, DOM manipulation, and request routing to display individual components. React is installed by running the following console command:
+
+npm install react react-dom react-router-dom
+index.html and index.jsx
+With React we have a single HTML file that dynamically loads all of the other application components into its DOM using JavaScript. We replace the existing index.html file with the following React version.
+```html
+index.html
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+
+    <title>Simon React</title>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    <script type="module" src="/index.jsx"></script>
+  </body>
+</html>
+```
+Notice that the div with an ID of root is where all the content will be injected. The script reference for index.jsx causes the injection of the top level component named App. To hook the index.html to our top level App component, we create the following index.jsx file.
+```js
+index.jsx
+
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import App from './src/app';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App />);
+```
+Create App component
+To begin the transformation to using React components in our application, we create a top-level component, stored in src/app.jsx, and add some placeholder content that will get replaced later. In order for the styling to show up, we include Bootstrap, move the main.css content into a file named src/app.css, and import the CSS file into the app.jsx file. Because we don't have a body element in our App component, we modify the app.css so that the selector for the body element is changed to a class selector .body.
+```js
+app.jsx
+
+import React from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './app.css';
+
+export default function App() {
+  return <div className='body bg-dark text-light'>App will display here</div>;
+}
+```
+You should be able to view the results of these changes by running npm run dev from the console and pressing the o key to open it in the browser. The result won't be very exciting, but this successfully demonstrates the first visible step towards moving to React. When you reach this point with your startup, make sure that you commit your changes.
+
+First React component
+
+To make app.jsx represent the actual Simon content, we enhance the app.jsx file to contain the header and footer HTML found in each of our previous HTML files, into the return value for the App() component function. Next, we rename the class attribute to be className so that it doesn't conflict with the JavaScript class keyword. The className keyword will get transpiled to valid HTML by our toolchain. When completed, the App component should look like this:
+```js
+app.jsx
+
+export default function App() {
+  return (
+    <div className='body bg-dark text-light'>
+      <header className='container-fluid'>
+        <nav className='navbar fixed-top navbar-dark'>
+          <div className='navbar-brand'>
+            Simon<sup>&reg;</sup>
+          </div>
+          <menu className='navbar-nav'>
+            <li className='nav-item'>
+              <a className='nav-link' href='index.html'>
+                Home
+              </a>
+            </li>
+            <li className='nav-item'>
+              <a className='nav-link' href='play.html'>
+                Play
+              </a>
+            </li>
+            <li className='nav-item'>
+              <a className='nav-link' href='scores.html'>
+                Scores
+              </a>
+            </li>
+            <li className='nav-item'>
+              <a className='nav-link' href='about.html'>
+                About
+              </a>
+            </li>
+          </menu>
+        </nav>
+      </header>
+
+      <main>App components go here</main>
+
+      <footer className='bg-dark text-white-50'>
+        <div className='container-fluid'>
+          <span className='text-reset'>Author Name(s)</span>
+          <a className='text-reset' href='https://github.com/webprogramming260/simon-react'>
+            Source
+          </a>
+        </div>
+      </footer>
+    </div>
+  );
+}
+```
+This will display the header, navigation elements, placeholder content, and the footer. When you reach this point with your startup, make sure that you commit your changes.
+
+App React component
+
+Create view components
+We now create React component files login.jsx, play.jsx, scores.jsx, and about.jsx to represent each of the application views. To begin with, these are just stubs that we will populate as we move functionality from the old js files into the jsx components. We place each of the stubbed components in a separate directory (e.g. src/login/login.jsx) so that we can keep all of the component files together.
+
+Here is the login.jsx stub before any code is converted over. The other components are similar.
+```js
+import React from 'react';
+
+export function Login() {
+  return (
+    <main className='container-fluid bg-secondary text-center'>
+      <div>login displayed here</div>
+    </main>
+  );
+}
+```
+Create the router
+With app.jsx containing the header and footer, and all the application view component stubs created, we can now create the router that will display each component as the navigation UI requests it. The router controls the whole application by determining what component to display based upon what navigation the user chooses. To implement the router, we import the router component into the App component, and wrap all of the App component's elements with the BrowserRouter component. We also import all of our view components.
+```js
+import { BrowserRouter, NavLink, Route, Routes } from 'react-router-dom';
+import { Login } from './login/login';
+import { Play } from './play/play';
+import { Scores } from './scores/scores';
+import { About } from './about/about';
+
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
+  <BrowserRouter>
+    <div className='body bg-dark text-light'><!-- sub-elements here --></div>
+  </BrowserRouter>
+);
+```
+Navigating routes
+We then we replace the a elements with the router's NavLink component. The anchor element's href attribute is replaced with the router's to attribute. The NavLink component prevents the browser's default navigation functionality and instead handles it by replacing the currently displayed component.
+```html
+<a className="nav-link" href="play.html">Play</a>
+
+// to
+
+<NavLink className='nav-link' to='play'>Play</NavLink>
+The nav element's code now looks like the following.
+
+<nav className='navbar fixed-top navbar-dark'>
+  <div className='navbar-brand'>
+    Simon<sup>&reg;</sup>
+  </div>
+  <menu className='navbar-nav'>
+    <li className='nav-item'>
+      <NavLink className='nav-link' to=''>
+        Login
+      </NavLink>
+    </li>
+    <li className='nav-item'>
+      <NavLink className='nav-link' to='play'>
+        Play
+      </NavLink>
+    </li>
+    <li className='nav-item'>
+      <NavLink className='nav-link' to='scores'>
+        Scores
+      </NavLink>
+    </li>
+    <li className='nav-item'>
+      <NavLink className='nav-link' to='about'>
+        About
+      </NavLink>
+    </li>
+  </menu>
+</nav>
+```
+Injecting the routed component
+The router definitions are then inserted so that the router knows what component to display for a given path. The router changes the rendered component; it appears in the place of the Routes element. The Routes element replaces the main element in the component HTML.
+```html
+ <main>App components go here</main>
+
+ // to
+
+<Routes>
+  <Route path='/' element={<Login />} exact />
+  <Route path='/play' element={<Play />} />
+  <Route path='/scores' element={<Scores />} />
+  <Route path='/about' element={<About />} />
+  <Route path='*' element={<NotFound />} />
+</Routes>
+```
+Notice that the * (default matcher) was added to handle the case where an unknown path is requested. We handle this by creating a component for a path that is not found. We place this component at the bottom of our src/app.jsx file.
+```js
+function NotFound() {
+  return <main className='container-fluid bg-secondary text-center'>404: Return to sender. Address unknown.</main>;
+}
+```
+At this point the application should support navigating to the different components. When you reach this point with your startup, make sure that you commit your changes.
+
+Routing
+
+Converting to React components
+The code for each of the HTML pages needs to now be converted to the different React components. Each of the components is a bit different, and so you want to review them to determine what they look like as a React component.
+
+The basic steps for converting the component include the following.
+
+Copy the main element HTML over and put it in the return value of the component. Don't copy the header and footer HTML since they are now represented in app.jsx.
+Rename the class to className so that it doesn't conflict with the JavaScript keyword class.
+Copy the JavaScript over and turn the functions into inner functions of the React component.
+Move the CSS over to the component directory and use an import statement to bring it into the component's jsx file.
+Create React state variables for each of the stateful objects in the component.
+Replace DOM query selectors with React state variables.
+Move state up to parent components as necessary. For example, authentication state, or user name state.
+Create child components as necessary. For example, a SimonGame and SimonButton component.
+In order for you to have a feel for how this is done we will demonstrate how this is done with the Scores component.
+
+Convert Scores component
+The first step to implementing the Scores component is to create a state variable that will represent the scores that we read from the server. We will update the scores as a side effect when our fetch request to get the scores asynchronously completes. This is done with the following code:
+```js
+const [scores, setScores] = React.useState([]);
+
+React.useEffect(() => {
+  fetch('/api/scores')
+    .then((response) => response.json())
+    .then((scores) => {
+      setScores(scores);
+      localStorage.setItem('scores', JSON.stringify(scores));
+    })
+    .catch(() => {
+      const scoresText = localStorage.getItem('scores');
+      if (scoresText) {
+        setScores(JSON.parse(scoresText));
+      }
+    });
+}, []);
+```
+When we get the scores back from the backend server, we want to convert them to JSX. This is done by iterating through the scores and pushing them into a variable named scoreRows that represents an array of JSX elements for each high score.
+```js
+const scoreRows = [];
+if (scores.length) {
+  for (const [i, score] of scores.entries()) {
+    scoreRows.push(
+      <tr key={i}>
+        <td>{i}</td>
+        <td>{score.name.split('@')[0]}</td>
+        <td>{score.score}</td>
+        <td>{score.date}</td>
+      </tr>
+    );
+  }
+} else {
+  scoreRows.push(
+    <tr key='0'>
+      <td colSpan='4'>Be the first to score</td>
+    </tr>
+  );
+}
+```
+Now we can bring over the main element from the existing scores.html file to the src/scores/scores.jsx file and place it as the return value from the component function. Next, we insert a reference to the scoreRows variable that will display the score JSX. That should look like the following:
+```html
+return (
+  <main className='container-fluid bg-secondary text-center'>
+    <table className='table table-warning table-striped-columns'>
+      <thead className='table-dark'>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Score</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id='scores'>{scoreRows}</tbody>
+    </table>
+  </main>
+);
+```
+That completes the conversion of the HTML and JavaScript files that represent the scores functionality. You can safely delete the original scores.html and scores.js files.
+
+Now we just need to move scores.css to src/scores/scores.css and import the CSS into the src/scores/scores.jsx.
+
+import './scores.css';
+With that all done, the scores should render nicely. You can follow a similar process to convert the other three application views to components.
+
+Scores component
+
+Test as you go
+That was a lot of changes and it is easy to make a mistake during the process. When you do this with your startup application, you will find it easier if you make a small change, and test that it still works. If it does, commit that change to Git. That way you can recover when things get broken before it gets out of hand.
+
+Study this code
+Get familiar with what the example code teaches.
+
+Clone the repository to your development environment.
+
+git clone https://github.com/webprogramming260/simon-react.git
+Set up your Atlas credentials in a file named dbConfig.json that is in the same directory as database.js.
+
+Add dbConfig.json to your .gitignore file so that it doesn't put your credentials into GitHub accidentally.
+
+Review the code and get comfortable with everything it represents.
+
+Debug the front and backend.
+
+⚠ Do not use the live server extension since your frontend code will now be served up by the the Vite hot swappable HTTP server when you run npm run dev. Set breakpoints for your backend code inside of Visual Studio Code. Set breakpoints for your frontend code in the browser.
+
+Make modifications to the code as desired. Experiment and see what happens.
+
+## TypeScript
+
+📖 Deeper dive reading: Typescript in 5 minutes
+
+TypeScript adds static type checking to JavaScript. This provides type checking while you are writing the code to prevent mistakes like using a string when a number is expected. Consider the following simplistic JavaScript code example.
+```js
+function increment(value) {
+  return value + 1;
+}
+
+let count = 'one';
+console.log(increment(count));
+```
+When this code executes the console will log one1 because the count variable was accidentally initialized with a string instead of a number.
+
+With TypeScript you explicitly define the types, and as the JavaScript is transpiled (with something like Babel) an error will be generate long before the code is seen by a user. To provide type safety for our increment function, it would look like this:
+```js
+function increment(value: number) {
+  return value + 1;
+}
+
+let count: number = 'one';
+console.log(increment(count));
+```
+With TypeScript enabled, VS Code will analyze the code and give you an error about the invalid type conversion.
+
+TypeScript bad assignment
+
+In addition to defining types for function parameters, you can define the types of object properties. For example, when defining the state for a React class style component, you can specify the types of all the state and property values.
+```js
+export class About extends React.Component {
+  state: {
+    imageUrl: string;
+    quote: string;
+    price: number;
+  };
+
+  constructor(props: { price: number }) {
+    super(props);
+
+    this.state = {
+      imageUrl: '',
+      quote: 'loading...',
+      price: props.price,
+    };
+  }
+}
+```
+You can likewise specify the type of a React function style component's properties with an inline object definition.
+```js
+function Clicker(props: { initialCount: number }) {
+  const [count, updateCount] = React.useState(props.initialCount);
+
+  return <div onClick={() => updateCount(1 + count)}>Click count: {count}</div>;
+}
+```
+Interfaces
+Because it is so common to define object property types, TypeScript introduced the use of the interface keyword to define a collection of parameters and types that an object must contain in order to satisfy the interface type. For example, a Book interface might look like the following.
+```js
+interface Book {
+  title: string;
+  id: number;
+}
+```
+You can then create an object and pass it to a function that requires the interface.
+```js
+function catalog(book: Book) {
+  console.log(`Cataloging ${book.title} with ID ${book.id}`);
+}
+
+const myBook = { title: 'Essentials', id: 2938 };
+catalog(myBook);
+```
+Beyond type checking
+TypeScript also provides other benefits, such as warning you of potential uses of an uninitialized variable. Here is an example of when a function may return null, but the code fails to check for this case.
+
+TypeScript uninitialized
+
+You can correct this problem with a simple if block.
+```js
+const containerEl = document.querySelector<HTMLElement>('#picture');
+if (containerEl) {
+  const width = containerEl.offsetWidth;
+}
+```
+Notice that in the above example, the return type is coerced for the querySelector call. This is required because the assumed return type for that function is the base class Element, but we know that our query will return the subclass HTMLElement and so we need to cast that to the subclass with the querySelector<HTMLElement>() syntax.
+
+Unions
+TypeScript introduces the ability to define the possible values for a new type. This is useful for doing things like defining an enumerable.
+
+With plain JavaScript you might create an enumerable with a class.
+```js
+export class AuthState {
+  static Unknown = new AuthState('unknown');
+  static Authenticated = new AuthState('authenticated');
+  static Unauthenticated = new AuthState('unauthenticated');
+
+  constructor(name) {
+    this.name = name;
+  }
+}
+```
+With TypeScript you can define this by declaring a new type and defining what its possible values are.
+```js
+type AuthState = 'unknown' | 'authenticated' | 'unauthenticated';
+
+let auth: AuthState = 'authenticated';
+You can also use unions to specify all of the possible types that a variable can represent.
+
+function square(n: number | string) {
+  if (typeof n === 'string') {
+    console.log(`{$n}^2`);
+  } else {
+    console.log(n * n);
+  }
+}
+```
+Using TypeScript
+If you would like to experiment with TypeScript you can use CodePen, or the official TypeScript playground. The TypeScript playground has the advantage of showing you inline errors and what the resulting JavaScript will be.
+
+typescript playground
+
+To use TypeScript in your web application you can create your project using vite. Vite knows how to use typescript without any additional configuration.
+```js
+npm create vite@latest
+✔ Project name: … viteDemo
+✔ Select a framework: › React
+? Select a variant: › - Use arrow-keys. Return to submit.
+❯   TypeScript
+    TypeScript + SWC
+    JavaScript
+    JavaScript + SWC
+    Remix ↗
+```
+If you want to convert an existing application, then install the NPM typescript package to your development dependencies.
+```js
+npm install --save-dev typescript
+```
+This will only include typescript package when you are developing and will not distribute it with a production bundle.
+
+Once you have TypeScript installed for your project, you then configure how you want TypeScript to interact with your code by creating a tsconfig.json file.
+
+If your project structure is configured to have your source code in a directory named src, and you want to output to a directory named build then you would use the following TS configuration file.
+```js
+{
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "build",
+    "target": "es5",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noFallthroughCasesInSwitch": true,
+    "module": "esnext",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx"
+  },
+  "include": [
+    "./src/**/*"
+  ]
+}
+```
+To learn what all of the tsconfig.json options do, refer to What is a tsconfig.json.
+
+
+## Performance monitoring
+
+The performance of your application plays a huge role in determining user satisfaction. The following statistics show the impact that just one second of delay can make.
+
+Latency impact
+
+Source: WPEngine
+
+In order to prevent losing users, you want your application to load in about one second. That means you need consistently measure and improve the responsiveness of your application. The main things you want to monitor include:
+
+Browser application latency
+Network latency
+Service endpoint latency
+For the context of this discussion, latency is defined as the delay that your user experiences before a request is satisfied.
+
+Let's look at each of these performance areas, and then we can suggest some tools for measuring and improving the results.
+
+Browser application latency
+Browser application latency is impacted by the speed of the user's device, the amount of data that needs to be processed, and the time complexity of the processing algorithm.
+
+When a user requests your application in a browser, the browser will request your index.html page first. This is followed by requests for any files that index.html links, such as JavaScript, CSS, video, and image files. Once your JavaScript is loaded, it will start making requests to services. This includes any endpoints that your provide as well as ones provided by third parties. Each of those requests takes time for the browser to load and render. A page with lots of large images and lots of service calls, will take longer than a page that only loads simple text from a single HTML file.
+
+Likewise, if your JavaScript does significant processing while a page is loading, then your user will notice the resulting latency. You want to make application processing as asynchronous as possible so that it is done in the background without impacting the user experience.
+
+You can reduces the impact of file size, and HTTP requests in general, by doing one or more of the following:
+
+Use compression when transferring files over HTTP.
+Reduce the quality of images and video to the lowest acceptable level.
+Minify JavaScript and CSS. This removes all whitespace and creates smaller variable names.
+Use HTTP/2 or HTTP/3 so that your HTTP headers are compressed and the communication protocol is more efficient.
+You can also reduce the number of requests you make by combining the responses from multiple endpoint requests into a single request. This eliminates duplicated fields, but also decreases the overhead associated with each request.
+
+Network latency
+You pay a latency price for every network request that you make. For this reason, you want to avoid making unnecessary or large requests.
+
+Network latency is impacted by the amount of data that you send, the amount of data a user can receive per second (this is called bandwidth), and the distance the data has to travel.
+
+If the user has a low bandwidth connection that can only receive data at rates lower than 1 megabit per second, then you need to be very careful to reduce the number of bytes that you send to that user. Global latency is also a problem for users. If your application is hosted in a data center located in San Francisco, and used by someone living in Nairobi, then there will be a additional latency of 100 to 400 milliseconds for each request.
+
+You can mitigate the impact of global latency by hosting your application files in data centers that are close to the users you are trying to serve. Applications that are seeking to reach a global audience will often host their application from dozens of places around the world.
+
+Service endpoint latency
+Service endpoint latency is impacted by the number of request that are made and the amount of time that it takes to process each request.
+
+When a web application makes a request to a service endpoint there is usually some functionality in the application that is blocked until the endpoint returns. For example, if a user requests the scores for a game, the application will delay rendering until those scores are returned.
+
+You want to reduce the latency of your endpoints as much as possible. Ideally you want to keep the endpoint latency to less than 10 milliseconds (ms). This may seem like a very short time, but commonly, an application will make dozens of endpoint requests to render a component. If each of those endpoints take 10 ms, then you are looking at 100 to 200 ms. When you add network latency to the time it takes for the application to process the response, and then add the time it takes for the browser to render, you can easily exceed the desired 1 second load time.
+
+Performance tools
+📖 Deeper dive reading: Chrome performance tools
+
+Chrome network tab
+You can see the network requests made by your application and the time necessary for each request, by using the browser's debugging tools. This will show you what files and endpoints are requested and how long they are taking. If you sort by time or size, it will be clearer what areas need your attention. Make sure you clear your cache before running tests so that you can see what the real latency is and not just the time it takes to load from the browser's cache.
+
+Performance
+
+Simulating real users
+The network tools in the Chrome debugger also allows you to simulate low bandwidth connections by throttling your network. For example, you can simulate a 3G network connection that you would find on a low end mobile phone.
+
+Throttle network
+
+Throttling while testing is really useful since web developers often have high end computers and significant network bandwidth. That means you are not having the same experience as your users, and you will be surprised when they don't use your application because it is so slow.
+
+Chrome Lighthouse
+You can also use the Chrome debugging Lighthouse tool to run an analysis of your application. This will give you an average performance rating based upon the initial load time, longest content paint, and time before the user can interact with the page.
+
+Performance
+
+Chrome performance tab
+When you are ready to dig into your application's frontend performance make sure you experiment with the Chrome debugger's performance tab. This breaks down the details of your application based upon discrete intervals of time so that you can isolate where things are running slow.
+
+Performance tab
+
+You start profiling the performance by pressing the record button and then interacting with your application. Chrome will record memory usage, screenshots, and timing information. You can then press the stop recording button and review the collected data. For example, the performance data represented in the image above, shows that 56% of the execution time was used in the button.press function. If you drill in on the source code for the function you will see exactly which lines of the function were consuming the processing time.
+
+Global speed tests
+You also want to test your application from different locations around the world. There are many online providers that will run these test for you. Here are the results for running a test using Pingdom.com.
+
+Pingdom
+
+You can see that it is correctly suggesting that we enable gz compression on our transmitted data in order to increase performance, and to add headers that will enable caching on the browser.
+
+This tool provided by DotComTools allows you to run tests from multiple locations at once.
+
+DotCom Tools
+
+Here you can see we perform acceptably from the United States and Europe, but are struggling in Asia. That makes sense considering that our server is located in North Virginia. In order to correct this, we need to use a Content Delivery Network (CDN) with an additional location closer to our target users in China.
+
+## UX design
+Properly considering the user experience (UX) of your application will make all the difference in your success. Focusing first on technology, cost, or revenue tends to lead to an unsatisfying user experience. Instead you want to consider why someone is using your application, how they want to interact, how visually appealing it is, and how easy it is to get something done.
+
+Design as a story
+It is often useful to think of user experience as a story. Consider the background plot, the user entering the stage, interacting with other actors, and getting the audience to applaud. At first this may sound a bit strange, but applications are not used in a vacuum. There is always a reason someone is using your application. If you can clearly define that background plot, then the experience will better match the user's expectation. Likewise, if you know what results in a satisfied audience, then you build the application experience around delivering that result.
+
+Consider the tourism application for the city of Philadelphia. They know a user visits the site because they want to have an experience in Philadelphia. The application immediately provides a time relevant proposal for that experience. All the navigation options for having a successful experience (events, food, deals, and trip planning) are immediately accessible. Just looking at the initial imagery conveys the excitement of engaging in the application.
+
+Design story
+
+Source: visitphilly
+
+Simplicity
+Google broke all the rules for web application design when they released their homepage in 1998.
+
+Simplicity
+
+Source: Google.com 2022
+
+Previous to that, it was common for app designers to pile everything they could into the initial view of the application. This includes multiple advertisements, navigation options, lots of hyperlinks, and color choices. Here is an example from a competitor around the same time period.
+
+Simplicity
+
+Source: Lycos.com 1999
+
+The key point of this example is that simplicity attracts users' attention and engages them in the application experience. Building off of Google's positive reaction, other major applications immediately followed their example. Here is the initial experience when visiting facebook's application for the first time. Notice that it simply states the purpose of the application and invites the user to create an account.
+
+Simplicity
+
+Source: facebook.com
+
+Simplicity doesn't require a blank page. Simplicity can also be visually stimulating with beautiful imagery and simple navigation options.
+
+Simplicity
+
+Source: Nomadic Tribe
+
+You can also include significant amounts of content. You just need to keep things focused on a single purpose, for example, creating an account, viewing images, or beginning your travel experience. Below is the Pinterest application landing page. Even though the viewport is cluttered with images, they are all working towards the same purpose of demonstrating the value of the application.
+
+Simplicity
+
+Consistency
+There is a tension that exists with web applications between being consistent with how other applications work and being unique so that your experience stands out. What you want to avoid is being so different that a user has to think hard in order to use your application. This is usually avoided by using the standard conventions that a user expects to find on a web application. The following image describes the standard layout and navigation controls of an application.
+
+Holy grail
+
+What a standard layout is defined to be will migrate over time as new trends in application fashion seek to make things look fresh. However, if you follow current trends, your users are more likely to engage in your application.
+
+One easy way to build an application that uses current design trends is to use a web framework that provides standard layouts, colors, and iconography. Here is an example of a template application built using a web framework with just a few minutes of work.
+
+Frameworks
+
+Navigation
+A user should never get lost while using your application. To help orient your user you want to carefully design the flow of the application and provide the proper navigational controls.
+
+Navigation Controls	Description
+App controls	User settings, payment, and help controls
+Device controls	Device specific controls such as back, next, and home
+Breadcrumb	A path of the user's walk through the application
+Common actions	Direct links to locations based on the current view
+Application map
+The first step in building your application should be to design an application map that has all the views that you will present to the user. This helps clarify the functional pieces of the application and their relationship to each other. For example, if you were building a music player you might start with a landing page that displays some marketing information and allows the user to create an account or log in. If the user is already logged in, then they start with a dashboard that shows recent or suggested songs. From there they can either search the music catalog, navigate to a collection of songs based on a playlist, album, or artist, or go to an individual song.
+
+Application map
+
+If your application map starts looking like a governmental bureaucracy then you probably want to reconsider the interrelation of functionality. A convoluted application map is a strong indicator that the user experience with be likewise convoluted.
+
+Device controls
+With a concise application map in place, you can design navigational controls that allow the user to successfully use the application. To begin with, you want to make sure the navigational controls provided by the device are completely supported. When your application is hosted in a browser the previous and next buttons should take the user through the stack of visited views. If your application is hosted on a mobile device then the conventions of that device should work properly. For example, on an Android device swiping left and right should navigate the application views backward or forwards.
+
+Breadcrumb
+You always want to indicate where the user is, where they came from, and where they can go. You can do this with a breadcrumb control that lists the path the user took to get to where they are.
+
+Dashboard > Beatles > Abbey Road > Come Together
+
+A breadcrumb quickly orients the user and also allows them to jump up the navigational path.
+
+Common actions
+You also want to anticipate where a user would commonly want to go based upon the view that they are in. For example, if they are playing a song by one artist, it is common that they will want to view related artists. Therefore you want to provide a navigational link that will take them to a search view with a prepopulated query for related artists.
+
+Commonly accessed views should always be accessible from a standard location. For example, the user settings should always be on the top right, and the breadcrumb should always be on the top left. (Those locations get switched if using a Right-To-Left language.)
+
+You want to partition a large application into functional areas and place links for each area in the navigation bar at the top of the application. For example, if we added the ability to create music to our music application, you would want links that switched between listening to and creating music.
+
+Colors
+One of the first things you should consider as you design your application is the color scheme that you will employ. This usually involves picking a a primary, secondary, and focus color.
+
+Color Palette
+
+Source: paletton.com
+
+There are lots of tools out there that help you create a color scheme. These will let you chose monochromatic, adjacent, or triadic color schemes. You can then spin and adjust a color wheel until you get what you are looking for. With your scheme selected you can export the colors directly to CSS rulesets.
+
+Some free tools you should explore include Paletton and Adobe.
+
+Color Tools
+
+Source: paletton.com
+
+With your core colors selected, you can use different shades of the colors to reduce the starkness of the limited number of colors without turning your application into a rainbow.
+
+Color Application
+
+Just make sure you stick with your color scheme and even consider it when selecting font colors and images.
+
+Typography
+A great font will make your application easy on your user's eyes and increase their attention span. Since fonts have been around since the Gutenberg Press, there is some serious history to them. The following shows the different attributes of a font.
+
+Typography anatomy
+
+Source: material.io
+
+You can classify fonts into the following groups.
+
+Font Class	Example	Meaning
+Sans Serif	Font san serif	Only major strokes
+Serif	Font serif	Minor strokes off the major strokes
+Monospace	Font monospace	All letters have the same size
+Handwriting	Font handwriting	Cursive strokes
+Source: material.io
+
+When picking fonts you usually want to restrict the number of fonts to three or less. You also want to use them consistently. For example, it is common to use a Sans Serif font for buttons, navigation links, and body text. Serif fonts are used for paragraph headings. Monospaced fonts are for coding examples or text that needs alignment.
+
+If you are looking for royalty free fonts that you can use in your application, you should check out Google's open collection of fonts.
+
+Google fonts
+
+Iconography
+Because users will recognize standard icons, you can decrease the learning curve for your application if you use standard web icons to identify common functionality. For example, most users will immediately identify the following three icons as the menu, sharing, and close actions.
+
+Icon example
+
+Icons not only exploit user recognition, but they also save limited display space, and provide a visually pleasing alternative to text. The important thing is that you pick a set that includes standard icons and that you use them for their intended purpose. Icons become an anti-pattern when they are used to represent something that is contrary to their common usage.
+
+Icon Google
+
+Source: material.io
+
+There are lots of standard icon packages that you can choose from. This includes packages such as Font Awesome, Bootstrap Icons, Material Icons, Flat Color Icons, and Ant Design Icons
+
+Text
+You want to be consistent in the size of the text that you use as well as the number of characters displayed on a line. Commonly there are five different catagories of text sizes used by an application. These include the following.
+
+Purpose	Size
+Page title	96 px
+Titles	48-20 px
+Text	16 px
+Secondary text	14 px
+Input	16 px
+These sizes are just suggestions but they serve as a good place to start. If you are using an application framework then they will have default text sizes defined. The important thing is that you are consistent with the sizing. Titles should not be one size for a particular view and a different size on another one. Inconsistency confuses the user and makes the application feel haphazardly designed.
+
+Limiting line length
+Limiting the number of characters displayed on a line makes it easier to read paragraphs of text. The browser will automatically wrap text based on the viewport width, but having a line spread across a 4K monitor that is hundreds of characters long will make your application look clunky and drive the user crazy as they try and find the start of the next line in a long paragraph.
+
+Instead you want to specify a maximum width for your paragraphs. Usually a width of 60 to 80 characters is optimal. You can set this with the max-width property set to something like 35em. The em unit is the approximately the width of the m character in the font and so about half of an 'm' is about the average character width.
+
+The following shows the visual and cognitive impact of different line lengths.
+
+Line length
+
+Internationalization
+Designing a global international application requires careful consideration from the beginning. Attempting to internationalize a complex, mature application after it has a domestic presence is very difficult.
+
+One of the most important aspects to consider is the translation of textual content and the ability of the user to select their desired language.
+
+Unicode
+
+Successful translation also requires the text to be rendered properly. For example, several languages are read from right to left. Therefore the content, and the application itself, must be displayed in that orientation.
+
+Right to left
+
+Likewise the format for displaying dates, times, numbers, and currency varies greatly between nationalities. This includes country specific currency symbols (¥, $, €, or ฿), the order of date fields (MM/DD/YY or DD/MM/YY), and numerical separators (1,000.50 or 1.000,50).
+
+Iconography can also be a concern. An owl in the United States represents wisdom, but in some Asian countries it symbolizes stupidity. Icons that carry religious representations can be even more disruptive.
+
+Proper international design requires thought across the full technology stack. If data is not properly passed, stored, and rendered at every level of the stack it will fail to properly work globally. For example, dates and times should always be stored in a format that properly represents time zones (e.g. ISO 8601) and rendered based upon the user's location. That way when users do things like global calendaring or traveling between countries their data is not corrupted.
+
+Space
+Introducing space around your application content helps to create focus and lessen the effort a user has to exert in order to interpret the presented information.
+
+Whitespace
+
+Consider the following example, where whitespace is used to create focus on the brand, imagery, and call to action.
+
+Whitespace Prototypr
+
+Source: Prototypr.org
+
+Here is another example where whitespace brings the user's attention to specific text that teases the user and leads them down to the explanatory text, followed by actions the user can take to learn more.
+
+Whitespace Sofa
+
+Source: MadeBySofa.com
+
+Consider the same content with all of the whitespace removed. This is of course extreme, but it demonstrates the power that whitespace has.
+
+Whitespace Sofa
+
+Interaction
+Making your application interactive is a powerful way to engage the user and increase retention. Interaction can be as simple as gathering and displaying the user's name or avatar, or as complex as letting the user completely drive the application based on the choices they make.
+
+Here is an example of purchasing a car where the user can interactively see what their car will look like based upon their desires.
+
+BMW build a car
+
+Source: bmw.com
+
+Interaction makes the application come alive and invests the user in the result of their efforts.
+
+Images
+It is often said that a picture can save a thousand words. Including images in your application can convey deeper understanding, make it more visually appealing, and draw a user into the application. The following example helps the user know exactly what a product looks like and what it might look like when they use it. The contrast of colors in the image helps the product to pop and further suggest its value.
+
+Value image
+
+Source: Burberry.com
+
+Avoid using images that are only used as space fillers. Display space is too limited to waste on an image that doesn't add significant value. For example, the following image dominates the display of a technical article about CORS. However, it was only chosen because it matched the color scheme of the application and the title contains the work talk in it, but two people talking trough a tin can has nothing to do with CORS. Now the user has to scroll past the distracting image to get to the content. Instead, either omit the image, or include one that serves to clarify the purpose of CORS. That way your images are visually appealing and provide information that furthers the story you are trying to tell.
+
+No value image
+
+Source: medium.com
+
+Animation
+Animation can help make your application come alive, but it also helps confirm choices, demonstrate progress, and focus attention.
+
+Animation icon
+
+However, too much animation can physically make your users sick. Here is an example
+
+Animation too much
+
+Source: fireart.studio
+
+Decision fatigue
+You need to consider the impact of the choices that you present to a user. Hick's Law states that the time necessary to make a decision increases logarithmically with the number of choices presented. That doesn't mean that you should not provide options to the user, but that you should limit the number of choices given at any point in time.
+
+For example, the process of building a pizza involves many steps. First you must pick the location you want to order from, then the pizza size, cheese, meats, and veggies. Finally you need to provide payment. Each of those choices require a lot of input from the user, and so limiting the number of choices displayed at one time will help reduce decision fatigue and you will have better odds of them completing the ordering process.
+
+Decision pizza making
+
+Source: Papa Johns
+
+Device aware
+Modern devices allow a web application to interact in many sophisticated ways. This includes abilities such as installing to the device's desktop, determining the device's geographical location, displaying notifications, detecting the acceleration of the device, using the camera, and accessing the user's contacts. The more seamlessly the application is integrated with the device the more intuitive and useful the application will be.
+
+The following shows an application suggesting that the user add the application to the device's home screen. This makes it so a user can access the application without having to navigate to the application's URL.
+
+Add to home
+
+Device size and orientation
+Properly reorienting and altering the functionality of the application interface based upon the size and orientation of the display is especially important on mobile devices. The following shows an application that provides a course on how to tie knots. The default view for the course shows the video on the left and an interactive transcript on the right.
+
+Replace
+
+When the device is rotated the application automatically orients itself and moves the interactive transcript below the video in order to maximize the available space. The user can also display the table of contents on the left or the peer chat on the right. Because the device's display is large enough to show the content, even in portrait orientation, the table of contents or chat panes can also occupy a portion of the display. This allows the instructional content to still be visible while the functionality of the other panes are utilized.
+
+Slide in
+
+On a smaller device, such as a mobile phone, the table of contents or chat panes completely replace the content. The user can then click on the X icon to return to the instructional content. That ability to restrict the focus to a single functional purpose maximizes the use of the limited space without losing the context of the content the user is viewing.
+
+Rotate
+
+The following website demonstrates what happens when an application fails to properly adapt to the orientation of the device. When viewed in portrait mode the application only uses a small portion of the display to show a health warning, but when rotated, the warning completely occupies the display. This creates a confusing experience where the original context of the application is obscured, and leaves the user wondering what should be done next.
+
+Orientation
+
+Performance
+📖 Suggesting reading:
+
+Google site performance
+MDN Performance
+Application performance is an important aspect of your design that often gets overlooked until it is too late. Your application can be visually stunning, have intuitive navigation, and have amazing interactivity, but if it takes minutes to load or react to a user's actions, it will completely fail. Many studies have analyzed the relationship between performance and user retention. One study showed that as load times increase from one second to five seconds it causes 90% more users to bounce, or leave the application.
+
+Bounce rates
+
+Source: thinkwithgoogle.com
+
+You need to set performance goals for your application and consistently monitor how your application is doing. Generally you want your application to load in under a second. However, with modern single page web applications it can take several seconds to do the initial load. You can mitigate the appearance of a slow application by giving the impression of progress, by partially loading some content or displaying a loading animation.
+
+The Chrome debugging tools provide a lot of help for diagnosing your application performance. The network tab will show you the size of your application files and the amount of time it takes to transfer them.
+
+Performance
+
+You can use the Chrome debugging Lighthouse tool to run an analysis of your application. This will give you an average performance rating based upon the initial load time, longest content paint, and time before the user can interact with the page.
+
+Performance
+
+Short circuit
+Sometimes factors such as network latency will impact the performance of your application or make it partially unavailable. You want to consider how you can create a meaningful experience for your users even when you cannot provide full functionality. For example, your application might rely on a third party service for processing payment before they can access the application. Rather than deny the user access when the payment service is down, you could collect the payment information and attempt to process it later. In the meantime the user is allowed to continue working. If later, the payment processing fails, then you handle the problem just as if their credit card was cancelled after accepting payment.
+
+This ability to provide an alternative path is sometimes called short circuit or fallback functionality. This removes barriers from your application that otherwise would turn away customers, and they are usually not difficult to implement. You just need to consider each functional piece of your application and provide an alternative if that functionality is not available.
+
+Accessibility
+📖 Suggesting reading: MDN Accessibility
+
+Your application needs to appeal to a diverse population of users. This means that you need to design for users with different accessibility needs, including users with visual, physical, and auditory impairments.
+
+You can help users with visual impairments by considering color blindness when selecting your color scheme, providing high contrast themes, and supporting screen readers. Video and audio transcripts, along with visual animation, help users that need audio assistance. Providing keyboard shortcuts and making sure input elements are accessible in the proper order will help users with different physical abilities.
+
+Ability	Application features
+Visual	High contrast themes, color selection, screen readers
+Audio	Closed captions, textual alternatives, visual animation
+Physical	Keyboard navigation, element ordering
+Many of the accessibility tools that users employ require that your HTML is well structured and has attributes that support WAI-ARIA standards. Make sure you understand the proper use of elements and aria when you design a production application.
+
+Legal
+Like it or not, applications must consider applicable regulation and the possibility of legal action. For example, by violating GDPR Amazon was fined $887 million in 2021 for violating the privacy of its customers. In another case Domino's Pizza was found to be violating the Americans with Disabilities Act (ADA) because a blind man could not order a pizza by using a screen reader.
+
+Central to the core of many legal codes is the concept of Personally Identifiable Information (PII). While the strict interpretation of what PII is differs by industry, it generally relates to any data that can be directly ascribed to an identifiable individual.
+
+Every industry and local has different legal constraints. You should be aware of the major legislation that impacts your application. Here are some laws that impact applications within the jurisdiction of the United States of America.
+
+HIPAA
+The Health Insurance Portability and Accountability Act (HIPAA) stipulates the management of medical records. It includes provisions that give control to the individual with regard to access and sharing of records. Specifically it restricts how relatives, courts, and insurance companies may obtain medical records.
+
+FERPA
+The Family Educational Rights and Privacy Act (FERPA) defines how student data can be stored, shared, and accessed. FERPA defines the concept of an education record and then specifies who can view and contribute to that record.
+
+ADA
+The Americans with Disabilities Act (ADA) seeks to prohibit discrimination against individuals with diverse accessibility needs. The act was originally intended to cover physical environments, but recent case law has extended the interpretation of the law to cover electronic access.
+
+GDPR
+The General Data Protection Regulation (GDPR) impacts all applications that are used by members of the European Union. The main purpose of GDPR is to protect the privacy of users. Among other things, GDPR requires applications to get approval from the user before their data can be stored or shared. It also requires the application to provide the ability to delete all of the user's data and to be able to transfer their data to competing applications.
+
+Walls
+There are many types of walls that hinder a user's experience with an application. Some walls are caused by poor design or business decisions, and others are a result of unavoidable external pressures such as governmental regulation or security concerns.
+
+If you can learn to recognize user experience walls then there is a good chance that you can remove them or decrease their negative impact.
+
+Complexity
+As applications mature it is common for them to grow in complexity as more and more features are introduced.
+
+A primary cause of complexity is that software vendors uncritically adopt almost any feature that users want.
+
+— Niklaus Wirth
+
+The following image is from GitHub. An important action that a developer needs to do is create a Personal Access Token in order to work with repositories. However, GitHub has buried the UI for creating the token somewhere in their setting (account, user, and repository) pages. Assuming you are able to find the right setting page, you are then confronted with dozens of setting categories. After clicking through all of these options a user will wonder why such an important activity is buried so deeply in the application.
+
+complexity wall
+
+Payment
+Some walls, such as receiving payment, are unavoidable for the success of the application. However, consideration should be made to move the wall to the point where it is required. Before a user hits a payment wall they should have the opportunity to see the value of what they are purchasing. Even better is if the user is able to invest significant effort and content to the application before payment is required. For example, the application may allow the user to create a limited number of documents before they have to enter payment information.
+
+Payment wall
+
+Source: sitepoint.com
+
+Once payment is required, the process for entering payment information needs to be as effortless as possible. The best option is to have them not enter information at all, and instead use an associated credential like Apple Pay or Google Wallet to authorize payment based on the already authenticated user. Beyond that, a single text box that accepts, and authorizes, a credit card number is better than dozens of text boxes that must be completed before payment is made. You also want to remember payment information so that you don't need to repeatedly ask the user for input. This enables you to provide your application as a subscription service, or to execute single click purchases for future payments.
+
+Application failure
+Application failure is a reality that any good application design needs to address. An application that has a reputation of repeatedly presenting the user with a failure wall will have a hard time retaining users. The most basic solution to handling a failure is to present a message to the user apologizing for what went wrong. The user will be slightly less annoyed if you can explain what went wrong, provide a possible remedy, or explain the expected duration of the failure.
+
+Application failure wall
+
+Alternative solutions for handling failure include providing fallback functionality, automatically notifying the user when the failure has been resolved, or providing a status page where the user can go to see what is being done about the problem.
+
+Proactive solutions include designing an application that has multiple redundant regional deployments that automatically failover when one region experiences problems, or designing the application so that it can run offline with cached data.
+
+Security
+Security walls occur when you have to interact with the user in order to authenticate them. The security walls you present should be proportional to the value of the resource you are trying to secure. A banking application should have strong security walls that provide actual protection for the user's data. An application that gives away free kitten videos should have a minimal security wall if any.
+
+You need to consider both the frequency and complexity of your security wall. If the user feels that the security wall is too onerous for the value that the application is providing, they will find another solution. Likewise if the user feels that there is not enough security then they will not trust you with their data.
+
+Here is an example of an application for learning how to code. They need a user's email so that they can store course progress, but they don't even ask for a password because the email address is enough to uniquely identify the user. Authentication occurs when the user provides the security code that is emailed to the address that they provided. From then on the application remembers the email address. If the user accesses the application on a different device then the user just needs to do another once-per-device authentication.
+
+Registration wall
+
+Source: freecodecamp.com
+
+This a much lower wall than an application that requires you to log in repeatedly every 30 minutes.
+
+Login wall
+
+A CAPTCHA is a common way to verify that a user is a human. While this may be necessary for the success of your application, it is an example of a wall that provides no value to the user and will always lessen the application experience. This is especially true for a difficult CAPTCHA such as typing in unreadable text, or entering the number of mosquitos displayed in a jungle picture.
+
+Captcha wall
+
+Legal
+Legal walls usually only protect the application vendor and provide little or no value to the user. GDPR inspired cookie notifications are one example of this.
+
+Cookie acceptance wall
+
+Another common example of a legal wall is an application that requires the acceptance of terms and conditions before you can use the application. You want to minimize the impact of legal walls as much as possible since they lessen the user's experience and encourage the user to question why a legal consent is required in the first place.
+
+## Search engine optimization
+📖 Deeper dive reading: Google Search Central
+
+Once Google became the de facto search engine for the internet, a new industry was created to help websites get the top search result spots. Modifying your application for search results is called search engine optimization (SEO). While SEO has nothing to do with the functionality of your application, it has everything to do with its success. You can save millions of dollars in marketing if your application appears in the top search ranking for common user searches.
+
+There are several factors that are major contributors to your search rank. These include:
+
+Content
+Authoritative links
+Structure and organization
+Metadata
+Performance and usability
+Let's take a closer look at each of these.
+
+Content
+Search engines pay a lot of attention to the value an application provides. One of the ways you can provide significant value is to host interesting, current, easily accessible content. For example, if your application is about the game Simon, then you should include a history of the game, strategies for playing the game, current news about competitions, and biographies of the world's best players. The key is that there is lots of interesting content and that it is kept current.
+
+You want to make sure that you provide both textual and video content. Also make sure that the content is available without authentication or payment.
+
+Authoritative links
+The success of the Google Page Rank algorithm is founded on determining how authoritative an application is. The more websites that point to your application the higher its search ranking will be. If you can get an influencer to link to your content, or get links from other authoritative applications you will see a significant bump in your ranking.
+
+You also want to be an authority to yourself. This includes links from other applications that you own, and internal application links. Making sure that you have multiple paths to key content from within your application will help the Google crawler find the content and value its authority.
+
+Structure and organization
+You need to properly use HTML elements to correctly define and organize your application. The Google search crawler is an automated bot. That means it will not spend a lot of effort trying to guess what you meant with the div or span element, when they actually represent a title or a element. Leveraging the semantic meaning of HTML will help the crawler navigate your content.
+
+You want to make sure that your content is not hidden behind JavaScript interactions. When the crawler hits a URL, the important content should be rendered. The crawler should not have to interact with the application before the content is injected.
+
+Key HTML elements include the title and heading elements. The title and heading elements should contain text that clearly defines the value of your content, and include keywords that you want in the search index.
+
+Metadata
+HTML defines several elements and attributes that search crawlers specifically target. This includes the description, robots, social media open graph (og), and image alt attributes.
+
+If you were creating a description for Simon, you would include something like the following description meta element on the home page of your application.
+
+<meta name="description" content="Game play, news, rankings, tips, and instruction for Simon." />
+The robots meta element instructs the crawler how to specifically index a given page. The image alt attribute tells the crawler the keywords for a given image.
+
+The open graph (og) meta tags are used by social media websites to give a preview of your application. Crawlers consider information like this as a reflection that the application is modern and more interesting to users.
+
+<meta property="og:title" content="Play Simon online" />
+<meta property="og:description" content="News, rankings, instruction, and competitive online play for Simon." />
+<meta property="og:image" content="https://simon.cs260.click/simon.png" />
+Sitemap
+A sitemap is a textual file that you distribute with your application. It describes the major content pieces of your application and aids in search crawler navigation. If you have a small application then a sitemap is probably not necessary. If you have hundreds, or thousands, of content pages then you definitely want to build a sitemap and submit it to the Google Search Console.
+
+Here is an example of a simple sitemap file with a single entry.
+
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://simon.cs260.click/news/2022-world-champion.html</loc>
+    <lastmod>2023-01-17</lastmod>
+  </url>
+</urlset>
+Robots.txt
+The robots.txt file tells the crawler what parts of your application is off limits. Here is an example robots.txt file:
+
+# cs260.com/robots.txt
+# Tell Google not to crawl the game play path,
+# because it won't be useful in Google Search results.
+User-agent: googlebot
+Disallow: /play/
+To include a robots.txt file for your application you simply create the file with the specific name robots.txt and serve it from the root of your domain.
+
+Performance and usability
+In addition to authority, Google wants to rank results by quality. That means it will check how performant your application is and how good the user experience (UX) is. This includes measurements such as the time it takes for the first byte to load, how long it takes to render the page, and how well your application works on mobile devices.
+
+Tools
+Google search
+You want to frequently do a Google search for your application's domain to see how much of it is being indexed. You can do this by querying Google with your domain name prefixed with site:. For example, here is the current result for site:simon.cs260.click.
+
+Simon SEO search
+
+This shows that Google is not indexing any pages from the domain. It looks like we have some SEO work to do. Probably some authoritative links will help.
+
+PageSpeed Insights
+PageSpeed Insights is similar to the Chrome browser debugging tool Lighthouse, but it allows you to run it from a webpage. Using a tool like Insights is helpful because performance and usability are key factors in determining your search ranking. The better the rating you get from PageSpeed Insights, the better your search ranking will be.
+
+Here is the result of examining simon.cs260.click. This shows that it is performing well, but that it is not optimal for SEO.
+
+PageSpeed Insights
+
+If we dig into the SEO section of the report we see that there is no Robots.txt file and the description meta element is missing.
+
+PageSpeed Insights SEO
+
+Google Search Console
+The Google Search Console contains many tools to help you understand how your application is being indexed and why. This includes information about your website's performance, what pages are indexed, your mobile usability, and information about the site's overall user experience.
+
+Google Search Console
+
+To get started with the Google Search Console, you need to add a DNS TXT record to your application's domain DNS information. This is similar to when you added an A or CNAME record when you first set up your DNS information with the AWS Route 53 service.
+
+Google Search Console Verify
+
+Once your ownership of the domain name is verified, the Google Search Console will start tracking statistics for your domain. Check back often to gain insight on how you can improve your search ranking.
+
+## Device APIs
+
+Every year browsers mature and increase the features that they provide. Sometimes these features are exposed as APIs (Application programming interfaces) that allow a web application to interact with the user through browser, operating system, or device features. For example, your application could take advantage of location services that tell you where your user is physically located, or read a user's contacts in order to allow them to share information with their peers. As these APIs become standard across all browsers they enable web applications to behave more and more like historical native device applications.
+
+Respecting privacy
+Most device APIs require the user to consent to your application's use of the API, but as long as your application is providing value and not just trying to invade the user's privacy, that usually isn't a problem. For example, a good use of location services, would be a restaurant finder application that suggests nearby venues. A bad example of using locations services, would be a Sudoku game that sold your home address to advertisers. In some governmental jurisdictions such uses would be considered illegal.
+
+Location API
+📖 Deeper dive reading: MDN Location API
+
+The location API provides the GPS location of the device. Like the notification API, the user will be prompted for permission to access their location. After permission is granted then the navigator.geolocation API will return the user's location.
+
+The following React component will display the user's location once it loads.
+```js
+import React from 'react';
+
+export function Location() {
+  const [position, updatePosition] = React.useState({ lat: 0, long: 0 });
+
+  React.useEffect(() => {
+    console.log('updating pos');
+    navigator.geolocation.getCurrentPosition((p) => {
+      updatePosition({ lat: p.coords.latitude, long: p.coords.longitude });
+    });
+  }, []);
+
+  return (
+    <div>
+      {position.lat !== 0 && (
+        <div>
+          <h1>Your location</h1>
+          <div>Latitude: {position.lat}</div>
+          <div>Longitude: {position.long}</div>
+          <div>
+            <iframe
+              title='map'
+              width='600'
+              height='300'
+              src={`https://www.openstreetmap.org/export/embed.html?bbox=${position.long + 0.001},${
+                position.lat + 0.001
+              },${position.long - 0.001},${position.lat - 0.001}&amp;layer=mapnik`}
+            ></iframe>
+          </div>
+        </div>
+      )}
+      {position.lat === 0 && <div>Location unknown</div>}
+    </div>
+  );
+}
+```
+You can try this out by creating a simple React app and adding a new component file named location.js that contains the above code. Then include Location component in the App.js file.
+```js
+import { Location } from './location';
+
+function App() {
+  return (
+    <div className='App'>
+      <header className='App-header'>
+        <Location></Location>
+      </header>
+    </div>
+  );
+}
+```
+Location API
+
+Notification API
+📖 Deeper dive reading: MDN Notification API
+
+As an example of integrating your web application with the device, let's look at the Notification API.
+
+The following React code has a function to register the user's permission to display notifications, and a function to send notifications. The state representing a user's permission is initialized with the Notification API permission property. The state of the property can be default (not set), granted, or denied. If a user grants permission then the Notification class may be used to actually display a notification.
+
+The rest of the code controls the UI for the display state, buttons, and message input.
+```js
+function Notifier() {
+  const [acceptanceState, updateAcceptanceState] = React.useState(Notification.permission);
+  const [msg, updateMsg] = React.useState('');
+
+  function register() {
+    Notification.requestPermission().then((response) => {
+      updateAcceptanceState(response);
+    });
+  }
+
+  function notify() {
+    new Notification('You are notified', {
+      body: msg,
+    });
+    updateMsg('');
+  }
+
+  return (
+    <div className='component'>
+      <p>User's acceptance of notifications: {acceptanceState}</p>
+      {acceptanceState === 'default' && <button onClick={() => register()}>Register</button>}
+      {acceptanceState === 'granted' && (
+        <div>
+          <input type='text' value={msg} onChange={(e) => updateMsg(e.target.value)} placeholder='msg here'></input>
+          <button disabled={msg === ''} onClick={() => notify()}>
+            Notify
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+Here is what the code looks like in action.
+
+Notification Example
+
+Other APIs
+Other interesting device APIs include the Contact Picker, Bluetooth, and File System.
+
+Before you get too excited about using any device API make sure you check the current browser support for the API so that you can make sure you properly serve your target market. If a specific device is not supported on some device or browser, you can always hide that functionality for those users while still providing it for others.
+
+
+## Progressive web application
+
+⚠ The information provided here is meant as extended course content. It will not be covered in class or appear on any test.
+
+📖 Deeper dive reading:
+
+MDN PWA
+web.dev PWA
+The idea of creating a single application that works both on desktop and mobile devices is not a new concept. You can trace its origins to Microsoft's introduction of the XMLHttpRequest (XHR) in 1999. XHR allowed web pages to make HTTP requests directly from JavaScript. This evolved into the idea of a web application that could run on any device that supported a web browser. Steve Jobs actually championed the idea of a universal web application when he introduced the iPhone in 2007.
+
+"you can write amazing Web 2.0 and Ajax apps that look exactly and behave exactly like apps on the iPhone. And these apps can integrate perfectly with iPhone services. And guess what? There’s no SDK that you need! You’ve got everything you need if you know how to write apps using the most modern web standards to write amazing apps for the iPhone today. So developers, we think we’ve got a very sweet story for you. You can begin building your iPhone apps today"
+
+— Steve Jobs, (Source: 2007 MacWorld keynote)
+
+Unfortunately for the world, Apple quickly realized the incredibly lucrative market that existed if they created a closed application space that they controlled. And so in the same year that the iPhone was released, the Apple App Store was born, and software companies were forced to pay Apple 30% of all transactions made on the iPhone.
+
+While the tax on app store participation was unfortunate, the focus on device native applications was even worse. Native apps moved the software industry away from the idea of a universal application platform, to one where developers are forced to create completely different design, functionality, and code for each device. One for iPhone, one for Android, one for each game console, one for each TV vendor, one for the desktop, and so forth. While this is great for the employability of software engineers, it is terrible for software companies and users in general.
+
+When companies, such as Microsoft and Google realized the negative impact that native applications were having on the industry, they began to evangelize a return to standard web technologies that would work on any device. They introduced browser APIs, defined standards, and created frameworks that made it easy to build universal web applications. This technology was eventually branded as Progressive Web Application or PWA.
+
+Advantages of PWA
+While PWA builds on the standard core of HTML, CSS, and JavaScript, along with the delivery of content and software updates over HTTP, it takes web applications to the next level, by providing the following benefits.
+
+Works offline - Using the browser's Service Worker API, a PWA can control the caching of files locally on browser and make it so that the application can run when completely disconnected from the internet. This means that your app will still work when networks are spotty, such as while riding the subway, or when your user is rappelling down a back country slot canyon.
+Fast mobile installation to home screen - A user no longer has to navigate an app store to find and download a native application. Instead they click on a single button on their device and the PWA will instantly be placed on their home screen. If the app is designed to function offline, it can incrementally cache the necessary files while the user is actually using the application.
+No app store tax - As companies like Epic learned through expensive litigation, you must pay if you want to play, in the app store. App stores also use a heavy hand in the submission, approval, and update process. For those companies that are denied inclusion in the app store, there is no recourse. They simply are excluded from that marketplace. PWA technology removes the app store broker from the equation, and allows the software company to deal directly with the consumer.
+Instant updates - When a PWA needs to push out security fixes, or feature updates, it does not need the app store's approval. The user is also relieved from the complicated and annoying process of keeping dozens of app store installed applications updated. Instead they software provider just update by pushing a new version into production. The next time the user accesses the application they will see the changes.
+Performance - Because the PWA completely controls the level of browser caching, it can provide high levels of performance that is not dependent on network connectivity constraints. The application instantly reloads on subsequent visits and all the vital resources are already on the user's device.
+Same code base for all devices - Freed from the overhead of developing and maintaining multiple platforms, software companies can now redeploy their resources to providing functionality that actually benefits the user.
+Better SEO score - Starting in 2018 Google announced that mobile friendly applications, with PWAs specifically recognized, will have a significantly higher placement is Google search results. If your web application is a native app, then its content is completely excluded from search results. This means that if your application is not a PWA, then you will need to spend more on marketing in order to catch up with competitors.
+Finally, PWA technology enables small software companies to successfully compete in the mobile market. According to research provided by Statista (2022), mobile devices generate almost 60% of internet traffic. Those numbers are even higher for Africa (75%) and Asia (69%).
+
+Mobile usage statistics
+
+Source: statista
+
+With a PWA, a small software company can easily reach mobile device customers, and even provide offline web applications where network coverage is spotty or only sometimes available. This is important even for mature markets, such as the United States, where there are still significant portions of the population that do not have reliable broadband access.
+
+Broadband availability US
+
+Source US Census Bureau
+
+Where PWAs don't make sense
+With all of the advantages of PWAs, there are some situations where a native application is necessary.
+
+Apple incompatibility - While much of PWA technology works fine with iOS and Safari, Apple is slow to give up their strategic economic advantages. Therefore, some technologies do not yet work as well on the iPhone as they do on other devices. For example, iOS does not support standard push notifications. Additionally, you must use Safari in order to install a PWA to the home screen when using an iPhone. Hopefully, in the near future, Apple will give in to increasing community pressure and enable a better experience for their customers by removing these inconvenient incompatibilities.
+Advanced device features - A PWA can access a device's location, storage, haptic feedback, contacts, camera, battery, shortcuts, device orientation, fingerprint sensor, and even Bluetooth through browser supported APIs. However, if an application requires the use of specific device features such as the flashlight or an atmospheric pressure sensor then you might be forced to build a device native application.
+Example PWAs
+There are lots of examples of companies deploying PWAs. This includes brands such as Uber, Pinterest, Rakuten 24, Debenhams, Spotify, Google, BMW, Starbucks, and Flipboard.
+
+BMW
+The results for moving to PWA are impressive. For example, BMW reported the following results after moving to a PWA:
+
+4X increase in people clicking from BMW.com to a BMW sales site
+Up to 4X faster site load times
+50% growth in mobile users
+49% more site visits from search engines
+Source - Think With Google
+
+PWA BMW
+
+Spotify
+Spotify decided to move to a PWA in order to avoid Apple's 30% commission. However, they soon discovered additional benefits from their PWA.
+
+Free-to-paid conversions increased 26.6% in 2015, 46% in 2019, and 58.4% in 2021
+30% increase of monthly active users
+The number of desktop users rose by 45%
+40% increase of average listening hours per month
+UX research reported a more visually appealing, responsive, and adaptable application
+When you visit Spotify on a mobile device you are immediately invited to install the PWA to your home screen.
+
+Spotify install
+
+Once added to the home screen, the PWA acts just like a native device application.
+
+Spotify app
+
+Additionally, the PWA makes it so that desktop users can install, and have a native application experience. Here is an example of Spotify installed on a MacBook. Notice the lack of the browser's interface, and the inclusion of Spotify's branding in the operating system's controls.
+
+Spotify app
+
+Steps to make a PWA
+One of the best things about PWA technology is that it doesn't require a significant amount of overhead to make your application a PWA. If you have built your application using responsive design techniques (@media, viewport meta, flex, grid, ...) and you have fallback functionality when disconnected, then you only have to take two additional steps. First, you need to provide a manifest that defines the details for displaying your application. Next, you need to write some JavaScript that implements the service worker API in order to cache files for performance and offline ability.
+
+Manifest and icons
+📖 Deeper dive reading: MDN Web app manifests
+
+A PWA manifest is a JSON file that by convention is usually named manifest.json. You link the manifest to your application by including a reference in your index.html file. When the browser sees the manifest link, it recognizes the application as a PWA.
+
+<link rel="manifest" href="manifest.json" />
+There are a lot of possible settings you can specify in the manifest. This includes properties such as the application's functional categorize (e.g. education, entertainment, travel), how to display the application (e.g. fullscreen, standalone, minimal-ui), scope (where to load the application from), icons, colors, descriptions, and screenshots for installation.
+
+A minimal manifest might look like the following.
+```js
+{
+  "short_name": "Simon",
+  "name": "Simon",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/maskable_icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+```
+This manifest specifies some basic branding information that tells the browser how to display the application when creating a home screen icon, and what splash screen to generate as the application starts up.
+
+The icons section contains a variety of icons that the device will select from depending upon the context that the application is used in. In order to get full support for icons on iOS devices you also need to include a apple-touch-icon link in your index.html.
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+Service workers
+📖 Deeper dive reading: MDN Service worker API
+
+The final step for converting your application into a progressive web application involves creating a service working by using the Service Worker API. Services workers, while not specific to PWAs, allow a web application to do background processing that is not directly associated with the rendering and interaction of a web application. One of the most common uses for a Service Worker is to enabling the browser caching of files for performance reasons. This also makes it so that the PWA keeps working even when it is disconnected from the internet.
+
+To register a service worker, you call the navigator.serviceWorker API with the URL to a JavaScript file containing your service worker code.
+
+navigator.serviceWorker.register('service-worker.js');
+The browser will then load and execute the service worker JavaScript. This gives the service worker a chance to register for event handling and specify what files the browser should cache for the application.
+
+You can view the state of your application's service worker using the Chrome dev tools and selecting the Application tab.
+
+Spotify service worker
+
+The Application tab allows you to remove the service worker, install a new version, generate events, and view cached files.
+
+The service worker lifecycle
+When a service worker is first registered, the browser will immediately load it. This causes your application to be cached on the browser so that it can run offline and not have to load over the network on the user's next use. Since the application is served from the browser's cache, a user will not immediately see new application versions as they are deployed. Instead, they are loaded and put in a waiting state. The service worker remains in the waiting state until all of the browser tabs displaying the application are closed. Then, the next time the user opens the application, they will experience the new version.
+
+You can use the Service Worker settings on the Application dev tools tab to skip the waiting period and force the new application version to load immediately.
+
+Your application can also detect that a new version is available and then ask the user if they would like to automatically upgrade to the new version. The browser does that by simply refreshing the browser window.
+
+Experimenting with PWA
+If you would like to see a simple PWA in action, you can use create-react-app to generate an template PWA application. From your console window run:
+
+npx create-react-app testpwa --template cra-template-pwa
+Then open the resulting project found in the testpwa directory and modify index.js to change serviceWorkerRegistration.unregister to serviceWorkerRegistration.register. Then build the application with npm run build and host the resulting bundled app located in the build directory with the VS Code Live Server extension in order to see a minimal working PWA.
+
+Workbox
+📖 Deeper dive reading: Chrome workbox
+
+Workbox is an NPM package created by Google for using services workers. The template PWA created create-react-app, and the Simon demonstration project, both use workbox to simplify some of the registration, routing, and caching service worker complexities.
+
+## Simon Progressive Web Application
+
+⚠ Note that this deliverable is optional and ungraded. The information provided here is meant as extended course content.
+
+Simon
+
+This deliverable demonstrates using Progressive Web Application (PWA) technology to integrate with mobile devices.
+
+To covert the last Simon deliverable to a PWA we need to make three modifications.
+
+Update the manifest and icons.
+Implement and register a service worker. This includes caching the files necessary to run offline.
+Implement fallback functionality so the application still works when offline.
+Manifest and icons
+We want to make sure that Simon has all the necessary icons required by all major devices. To do this we took the original Simon icon and used Favicon.io to create a complete set of icons. We also created a maskable icon using Maskable.app for devices that manipulate your icon for display with different shapes and sizes. These icons were then added to the /public directory, and references were added to both the index.html link elements and the manifest.json file.
+```html
+index.html
+
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+manifest.json
+
+{
+  "short_name": "Simon",
+  "name": "Simon",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/maskable_icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
+```
+Service worker
+In order to get a reasonable service worker implementation we ran create-react-app with the cra-template-pwa template, and then copied over the service-worker.js and serviceWorkerRegistration.js files to our Simon project. The registration and service worker code was then stripped down and the necessary Workbox NPM packages installed as follows.
+
+npm install workbox-core workbox-expiration workbox-precaching workbox-routing workbox-strategies
+The caching implemented in service-worker.js first caches the React generated files, and then explicitly caches the sound and icon files used by Simon. This makes it so that all application files are cached on the browser and available for offline use.
+
+The service worker was then set to register with the browser by calling the register function at the end of the index.jsx file.
+
+serviceWorkerRegistration.register();
+Offline fallbacks
+Previous deliverables of Simon actually implemented fallback functionality for storing the current user and highest scores. However, we needed to make it so that a previously authenticated user could still play when disconnected from the internet. We also needed a default quote to use if we couldn't reach the third party quote endpoint.
+
+Authentication
+To support remembering the previously authenticated user we removed the code found in app.jsx that tried to verify authentication on start up. Instead we simply use the presence of a user name in local storage to designate authentication.
+
+When then modified authenticated.jsx to remove the user name from local storage when a user logs out.
+```js
+function logout() {
+  fetch(`/api/auth/logout`, {
+    method: 'delete',
+  }).then(() => {
+    localStorage.removeItem('userName');
+    props.onLogout();
+  });
+}
+```
+The server will still check to make sure we have an authenticated user when an attempt to update the latest high score, but these changes make it so you can still play Simon when disconnected if you were previously authenticated.
+
+Finally we disable login and account creation if we are not connected, and display an error instead.
+```js
+async function loginOrCreate(endpoint) {
+  try {
+    const response = await fetch(endpoint, {
+      method: 'post',
+      //...
+    });
+    //...
+  } catch {
+    setDisplayError(
+      `⚠ It appears that you are currently offline. You can play Simon offline, but you must be initially online to create or login to your account.`
+    );
+  }
+}
+```
+Offline message
+
+Default quote
+In about.jsx we return a default quote if we cannot connect to the third party quote endpoint.
+```js
+fetch('https://api.quotable.io/random')
+  .then((response) => response.json())
+  .then((data) => {
+    this.setState({ quote: data.content, quoteAuthor: data.author });
+  })
+  .catch(() => {
+    // Use offline fallback classic quote
+    this.setState({
+      quote: `Always bet on JavaScript`,
+      quoteAuthor: `Brendan Eich`,
+    });
+  });
+```
+These changes, combined with the browser caching of all the Simon files, makes the application work reasonably when offline.
+
+Deployment and testing
+During your examination of serviceWorkerRegistration.js you might have noticed that it does not register the service worker unless the application has been built in production mode (e.g. with npm run build). That means we need to run a production version of the application in order to see if everything is working correctly. The easiest way to do this is to use deployReact.sh to push the application to production.
+
+Once you have the application in production you can use the Chrome debug tools to see that the application is registered and running without error. You can turn off the network for the application by selecting the Offline option. You can also see all the files that are cached in the Cache/Storage/Cached Storage view. To delete the service worker and all cached files associated with the application use the Application/Storage/Clear Site Data option.
+
+Service Worker Debug
+
+When you are confident about how the PWA is working you can run the Lighthouse tool found in the Chrome Dev Tools and see if everything is working up to specification. If it displays all green then your application should work well on all devices and should be properly search engine optimized (SEOed)).
+
+Lighthouse report
+
+Lighthouse report
+
+Device testing
+As a final test you should manually examine the application using the different responsive views that the Dev Tools provide with the Chrome, Safari, and Firefox browsers. Here is what Simon looks like on the Safari browser emulating an iPhone 6. As you can see it is not rendering properly on a small screen.
+
+iPhone Safari
+
+Study this code
+Get familiar with what the example code teaches.
+
+Clone the repository to your development environment.
+
+git clone https://github.com/webprogramming260/simon-pwa.git
+Set up your Atlas credentials in a file named dbConfig.json that is in the same directory as database.js.
+
+Add dbConfig.json to your .gitignore file so that it doesn't put your credentials into GitHub accidentally.
+
+Review the code and get comfortable with everything it represents.
+
+View the code in your browser by hosting it from a VS Code debug session. ⚠ Do not use the live server extension since your frontend code will now be served up by the Node.js server you created in index.js. Set breakpoints in your backend code inside of Visual Studio.
+
+Make modifications to the code as desired. Experiment and see what happens.
