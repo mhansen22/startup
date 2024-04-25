@@ -2,6 +2,89 @@
 # CS 260 Notes
 **************
 
+
+## Final Review:
+1. Port 80 is reserved for?
+   a. **HTTP**
+   b. HTTPS
+   c. FTP
+   d. SSH
+2. HTTP status codes in the 300 range are for?
+   a. Server errors
+   b. Client errors
+   c. **Content redirects or caching**
+   d. Success
+3. Which is NOT a standard HTTP header?
+   a. Content-Type
+   b. Host
+   c. Cookie
+   d. **Language**
+4. Cookies allow:
+   a. **A server to store data on the client**
+   b. A client to store data on the server
+   c. A client or server to store data the server
+   d. For cache control
+5. For the request [GET] /fav/george what is logged? (p1)
+   a. paul ringo george john
+   b. paul john
+   c. paul ringo john
+   d. **paul george john**
+6. Which Express middleware will match this feth request? (p2)
+   a. app.get('/fav/:id', () => {})
+   b. app.delete('/favorite/:id', () => {})
+   c. **app.delete(/fav\/(.*)/, () => {})**
+   d. app.get('/ringo', () => {})
+7. What document matches this MongoDB query? (p3)
+   a. { name: "harry", score: 5 }
+   b. { name: "bud", score:3 }
+   c. { name: john, score: 337 }
+   d. **{ name: "Walke", score: -55 }**
+8. Why is hashing stored passwords important?
+   a. It improves performance
+   b. It makes it so a user can retrieve their password
+   c. **It improves security by making the password unreadable**
+   d. It validates how good the password is
+9. Given the following code what will console.log print? (p4)
+    a. **Client:Server:Hello**
+    b. Hello:Client:Server
+    c. Hello:Server:Client
+    d. Server:Client:Hello
+10. What value does WebSocket add to HTTP?
+    a. **It is peer to peer instead of client to server**
+    b. It runs using Token Ring
+    c. It uses proof of work to demonstrate security
+    d. It removes the need to keep a connection open
+11. What is NOT the purpose of JSX?
+    a. **To combine CSS, HTML, and JavaScript**
+    b. To render HTML from JavaScript
+    c. To componentize your HTML
+    d. To allow for composability of your HTML
+12. What will component A initially display? (p5)
+    a. burgerfish
+    b. **tacofish**
+    c. burgerburger
+    d. tacoburger
+13. What component will the URL `/burger` render? (p6)
+    a. A
+    b. **B**
+    c. D
+    d. D
+14. What does the command "NPM install ws" NOT do?
+    a. Locks the version of the websocket package for your application
+    b. Adds the websocket source code to the node_modules directory
+    c. **Adds template code for websockets to your JavaScript**
+    d. Adds a dependency to your package.json file
+15. You can use feth in front-end and back-end code.
+    a. **True**
+    b. False
+16. Which of the following is NOT true about a Linux daemon?
+    a. Executes independent of a user
+    b. Starts when the computer is rebooted
+    c. PM2 is an example of a daemon
+    d. **Cannot fork other processes**
+
+    
+
 ## GitHub Notes - 1/12/24:
 
 ### Creating and Cloning a Repository:
